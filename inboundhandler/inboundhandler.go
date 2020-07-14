@@ -3,12 +3,10 @@ package inboundhandler
 import (
 	"encoding/json"
 	"fmt"
+	"go-strava-daemon/response"
 	"net/http"
 
-	"go-strava-daemon/response"
-
 	"github.com/bikedataproject/go-bike-data-lib/strava"
-
 	"github.com/prometheus/common/log"
 )
 
