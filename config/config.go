@@ -6,5 +6,5 @@ type Configuration struct {
 
 	StravaClientID     string `required:"true"`
 	StravaClientSecret string `required:"true"`
-	StravaCallbackRL   string `required:"true"`
+	StravaCallbackURL  string `required:"true"`
 }
