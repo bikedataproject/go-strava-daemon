@@ -4,7 +4,7 @@ package config
 type Configuration struct {
 	PostgresEndpoint string `required:"true"`
 
-	StravaClientId     string `required:"true"`
+	StravaClientID     string `required:"true"`
 	StravaClientSecret string `required:"true"`
-	StravaCallbackUrl  string `required:"true"`
+	StravaCallbackRL   string `required:"true"`
 }
