@@ -15,6 +15,17 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type User struct {
+	Id                int
+	Provider          string
+	ProviderUser      string
+	AccessToken       string
+	RefreshToken      string
+	TokenCreationDate string
+	ExpiresAt         int
+	ExpiresIn         int
+}
+
 func main() {
 	// Load & verify the configuration
 	conf := &config.Config{}
@@ -29,6 +40,7 @@ func main() {
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
 	conStr := dbConf.GetConnectionString()
+	log.Info(conStr)
 	db, err := sql.Open("postgres", conStr)
 	if err != nil {
 		log.Fatal(err)
@@ -38,6 +50,21 @@ func main() {
 		log.Fatal(err)
 	} else {
 		log.Info("pong")
+	}
+
+	response, err := db.Query("select * from public.\"Users\"")
+	if err == nil {
+		for response.Next() {
+			var user User
+			if err := response.Scan(&user.Id, &user.Provider, &user.ProviderUser, &user.AccessToken, &user.RefreshToken, &user.TokenCreationDate, &user.ExpiresAt, &user.ExpiresIn); err != nil {
+				log.Fatal(err)
+			} else {
+				log.Info(user)
+			}
+		}
+
+	} else {
+		log.Fatal(err)
 	}
 
 	// Launch API server
