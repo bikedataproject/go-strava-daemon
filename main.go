@@ -2,8 +2,9 @@ package main
 
 import (
 	// Import the Posgres driver for the database/sql package
-	"log"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 
 	_ "github.com/lib/pq"
 

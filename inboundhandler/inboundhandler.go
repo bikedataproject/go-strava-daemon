@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorilla/schema"
 	"github.com/prometheus/common/log"
-	log "github.com/sirupsen/logrus"
 )
 
 // ResponseMessage : General response to send on requests
@@ -38,8 +37,8 @@ type StravaWebhookMessage struct {
 	Updates        interface{} `json:"updates"`
 }
 
-// SendJsonResponse : Send a struct as JSON response
-func SendJsonResponse(w http.ResponseWriter, obj interface{}) {
+// SendJSONResponse : Send a struct as JSON response
+func SendJSONResponse(w http.ResponseWriter, obj interface{}) {
 	response, err := json.Marshal(&obj)
 	if err != nil {
 		log.Fatalf("Could not parse response: %v", err)
@@ -56,11 +55,11 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 		// Decode the JSON body as struct
 		var msg StravaWebhookMessage
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-			SendJsonResponse(w, ResponseMessage{
+			SendJSONResponse(w, ResponseMessage{
 				Message: "Could not decode JSON body",
 			})
 		} else {
-			SendJsonResponse(w, ResponseMessage{
+			SendJSONResponse(w, ResponseMessage{
 				Message: "Ok",
 			})
 		}
@@ -71,14 +70,14 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 		msg := StravaWebhookValidationRequest{}
 		if err := decoder.Decode(&msg, r.URL.Query()); err != nil {
 			log.Warnf("Could not decode URL parameters into validation request: %v", err)
-			SendJsonResponse(w, ResponseMessage{
+			SendJSONResponse(w, ResponseMessage{
 				Message: "Recieved values were invalid!",
 			})
 		}
 		break
 	default:
 		log.Warnf("Received a HTTP %s request instead of GET or POST...", r.Method)
-		SendJsonResponse(w, ResponseMessage{
+		SendJSONResponse(w, ResponseMessage{
 			Message: fmt.Sprintf("Use HTTP POST or HTTP GET instead of %v", r.Method),
 		})
 		break
