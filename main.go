@@ -16,7 +16,7 @@ import (
 )
 
 type User struct {
-	Id                int
+	ID                int
 	Provider          string
 	ProviderUser      string
 	AccessToken       string
@@ -56,7 +56,7 @@ func main() {
 	if err == nil {
 		for response.Next() {
 			var user User
-			if err := response.Scan(&user.Id, &user.Provider, &user.ProviderUser, &user.AccessToken, &user.RefreshToken, &user.TokenCreationDate, &user.ExpiresAt, &user.ExpiresIn); err != nil {
+			if err := response.Scan(&user.ID, &user.Provider, &user.ProviderUser, &user.AccessToken, &user.RefreshToken, &user.TokenCreationDate, &user.ExpiresAt, &user.ExpiresIn); err != nil {
 				log.Fatal(err)
 			} else {
 				log.Info(user)
