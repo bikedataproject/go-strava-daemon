@@ -8,12 +8,13 @@ import (
 
 	"github.com/koding/multiconfig"
 
+	postgres "github.com/bikedataproject/go-bike-data-lib/postgres"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	// Load & verify the configuration
-	conf := &config.Configuration{}
+	conf := &config.Config{}
 	multiconfig.MustLoad(conf)
 
 	// Set webhook subscriptions
@@ -24,6 +25,16 @@ func main() {
 		VerifyToken:  "",
 	}
 	log.Info(out)
+
+	tmp := postgres.Database{
+		PostgresHost:       conf.PostgresEndpoint,
+		PostgresUser:       conf.PostgresUser,
+		PostgresPassword:   conf.PostgresPassword,
+		PostgresDb:         conf.PostgresDb,
+		PostgresPort:       conf.PostgresPort,
+		PostgresRequireSSL: conf.PostgresRequireSSL,
+	}
+	log.Info(tmp)
 
 	// Launch API server
 	log.Info("Launching API server")
