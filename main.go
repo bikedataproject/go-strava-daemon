@@ -2,9 +2,13 @@ package main
 
 import (
 	// Import the Posgres driver for the database/sql package
+	"log"
+	"net/http"
+
 	_ "github.com/lib/pq"
 
 	"go-strava-daemon/config"
+	"go-strava-daemon/inboundhandler"
 	"go-strava-daemon/outboundhandler"
 
 	"github.com/koding/multiconfig"
@@ -16,12 +20,15 @@ func main() {
 	multiconfig.MustLoad(conf)
 
 	// Subscribe to Strava
-	tmp := outboundhandler.StravaHandler{
+	out := outboundhandler.StravaHandler{
 		ClientID:     conf.StravaClientID,
 		ClientSecret: conf.StravaClientSecret,
 		CallbackURL:  conf.CallbackURL,
 		VerifyToken:  "JustSomeToken",
 		EndPoint:     conf.StravaWebhookURL,
 	}
-	tmp.SubscribeToStrava()
+	out.SubscribeToStrava()
+
+	http.HandleFunc("/webhook/strava", inboundhandler.HandleStravaWebhook)
+	log.Fatal(http.ListenAndServe(":5000", nil))
 }
