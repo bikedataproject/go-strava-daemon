@@ -1,15 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"go-strava-daemon/config"
 	"go-strava-daemon/inboundhandler"
-	"go-strava-daemon/outboundhandler"
+	"go-strava-daemon/postgres"
 	"net/http"
 
 	"github.com/koding/multiconfig"
 
-	postgres "github.com/bikedataproject/go-bike-data-lib/postgres"
 	log "github.com/sirupsen/logrus"
+
+	// Import the Posgres driver for the database/sql package
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -17,16 +20,7 @@ func main() {
 	conf := &config.Config{}
 	multiconfig.MustLoad(conf)
 
-	// Set webhook subscriptions
-	out := outboundhandler.StravaHandler{
-		ClientID:     conf.StravaClientID,
-		ClientSecret: conf.StravaClientSecret,
-		CallbackURL:  conf.StravaCallbackURL,
-		VerifyToken:  "",
-	}
-	log.Info(out)
-
-	tmp := postgres.Database{
+	dbConf := postgres.Database{
 		PostgresHost:       conf.PostgresEndpoint,
 		PostgresUser:       conf.PostgresUser,
 		PostgresPassword:   conf.PostgresPassword,
@@ -34,7 +28,17 @@ func main() {
 		PostgresPort:       conf.PostgresPort,
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
-	log.Info(tmp)
+	conStr := dbConf.GetConnectionString()
+	db, err := sql.Open("postgres", conStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Info("pong")
+	}
 
 	// Launch API server
 	log.Info("Launching API server")

@@ -10,8 +10,6 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/bikedataproject/go-bike-data-lib v0.0.0-20200714142508-601fdacf9dbe h1:S2p2LVW2eFg0JsXdNhCnL7FSgVg8ZJ8jdZDmduSEOzg=
 github.com/bikedataproject/go-bike-data-lib v0.0.0-20200714142508-601fdacf9dbe/go.mod h1:RxApq7iCitprgtg4uSS/Nfp7CPA68KJ/hlRmtHPt+U4=
-github.com/bikedataproject/go-bike-data-lib/postgres v0.0.0-20200715091213-798bc02c0c76 h1:kRZYT/h1DGmwkkZSQDdf8mXh8JhrOqYUBaOpZyJSKdw=
-github.com/bikedataproject/go-bike-data-lib/postgres v0.0.0-20200715091213-798bc02c0c76/go.mod h1:q7/JuolF3Cyh6aWbUGJj7zV36VrdisXZ0YhJYRBEHt8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
