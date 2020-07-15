@@ -11,5 +11,6 @@ type Config struct {
 
 	StravaClientID     string `required:"true"`
 	StravaClientSecret string `required:"true"`
-	StravaCallbackURL  string `required:"true"`
+	CallbackURL        string `required:"true"`
+	StravaWebhookURL   string `required:"true"`
 }

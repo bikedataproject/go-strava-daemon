@@ -17,5 +17,6 @@ export CONFIG_POSTGRESDB="bikedata"
 export CONFIG_POSTGRESREQUIRESSL="require"
 export CONFIG_STRAVACLIENTID="MY_STRAVA_ID"
 export CONFIG_STRAVACLIENTSECRET="MY_STRAVA_SECRET"
-export CONFIG_STRAVACALLBACKURL="https://redirect-to-me.com"
+export CONFIG_CALLBACKURL="https://redirect-to-me.com"
+export CONFIG_STRAVAWEBHOOKURL="https://www.strava.com/api/v3/push_subscriptions"
 ```

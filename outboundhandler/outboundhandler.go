@@ -2,10 +2,10 @@ package outboundhandler
 
 import (
 	"bytes"
-	"mime/multipart"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
-	"github.com/bikedataproject/go-bike-data-lib/strava"
 	"github.com/prometheus/common/log"
 )
 
@@ -15,31 +15,27 @@ type StravaHandler struct {
 	ClientSecret string
 	CallbackURL  string
 	VerifyToken  string
+	EndPoint     string
 }
 
-// StravaSubscribe : Function to subscribe to a Strava webhook
-func (handler StravaHandler) StravaSubscribe(endpoint string, subscribeData strava.StravaSubscribeRequest) {
-	payload := &bytes.Buffer{}
-	writer := multipart.NewWriter(payload)
-
-	_ = writer.WriteField("client_id", handler.ClientID)
-	_ = writer.WriteField("client_secret", handler.ClientSecret)
-	_ = writer.WriteField("callback_url", handler.CallbackURL)
-	_ = writer.WriteField("verify_token", handler.VerifyToken)
-
-	if err := writer.Close(); err != nil {
-		log.Fatalf("Could not properly close multipart writer: %v", err)
-	}
-
+// SubscribeToStrava : Subscribe to the strava webhooks service
+func (conf StravaHandler) SubscribeToStrava() (err error) {
 	client := &http.Client{}
-	if req, err := http.NewRequest("POST", endpoint, payload); err != nil {
-		log.Fatalf("Could not perform HTTP request: %v", err)
-	} else {
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-		if res, err := client.Do(req); err != nil {
-			log.Fatalf("Could not set content-type: %v", err)
-		} else {
-			defer res.Body.Close()
-		}
+	request, err := http.NewRequest("POST", fmt.Sprintf("https://www.strava.com/api/v3/push_subscriptions?client_id=%s&client_secret=%s&callback_url=%s&verify_token=%s", conf.ClientID, conf.ClientSecret, conf.CallbackURL, conf.VerifyToken), &bytes.Buffer{})
+	if err != nil {
+		return err
 	}
+
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	log.Infof("Strava subscription responded with: %v", string(body))
+	return
 }
