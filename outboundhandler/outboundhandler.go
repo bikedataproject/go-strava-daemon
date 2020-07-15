@@ -11,10 +11,10 @@ import (
 
 // StravaHandler : Object to handle outgoing Strava requests
 type StravaHandler struct {
-	clientID     string
-	clientSecret string
-	callbackURL  string
-	verifyToken  string
+	ClientID     string
+	ClientSecret string
+	CallbackURL  string
+	VerifyToken  string
 }
 
 // StravaSubscribe : Function to subscribe to a Strava webhook
@@ -22,10 +22,10 @@ func (handler StravaHandler) StravaSubscribe(endpoint string, subscribeData stra
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
 
-	_ = writer.WriteField("client_id", handler.clientID)
-	_ = writer.WriteField("client_secret", handler.clientSecret)
-	_ = writer.WriteField("callback_url", handler.callbackURL)
-	_ = writer.WriteField("verify_token", handler.verifyToken)
+	_ = writer.WriteField("client_id", handler.ClientID)
+	_ = writer.WriteField("client_secret", handler.ClientSecret)
+	_ = writer.WriteField("callback_url", handler.CallbackURL)
+	_ = writer.WriteField("verify_token", handler.VerifyToken)
 
 	if err := writer.Close(); err != nil {
 		log.Fatalf("Could not properly close multipart writer: %v", err)

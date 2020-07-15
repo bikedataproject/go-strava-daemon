@@ -18,11 +18,12 @@ func main() {
 
 	// Set webhook subscriptions
 	out := outboundhandler.StravaHandler{
-		clientID:     conf.StravaClientID,
-		clientSecret: conf.StravaClientSecret,
-		callbackURL:  conf.StravaCallbackURL,
-		verifyToken:  "",
+		ClientID:     conf.StravaClientID,
+		ClientSecret: conf.StravaClientSecret,
+		CallbackURL:  conf.StravaCallbackURL,
+		VerifyToken:  "",
 	}
+	log.Info(out)
 
 	// Launch API server
 	log.Info("Launching API server")
