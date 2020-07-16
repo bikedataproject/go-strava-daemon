@@ -44,29 +44,30 @@ type StravaActivity struct {
 
 // GetActivityData : Get data for an activity
 func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err error) {
-	// Get owner information from database
-	user, err := msg.MessageHandler.DatabaseConnection.GetUserData(string(msg.OwnerID))
-	if err != nil {
-		log.Fatalf("Could not get user information: %v", err)
-	}
+	if msg.ObjectType == "activity" {
+		// Get owner information from database
+		user, err := msg.MessageHandler.DatabaseConnection.GetUserData(string(msg.OwnerID))
+		if err != nil {
+			log.Fatalf("Could not get user information: %v", err)
+		}
 
-	// Fetch activity
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://www.strava.com/api/v3/activities/3766124525", nil)
-	if err != nil {
-		log.Fatalf("Could not create request: %v", err)
-	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", user.AccessToken))
+		// Fetch activity
+		client := &http.Client{}
+		req, err := http.NewRequest("GET", fmt.Sprintf("https://www.strava.com/api/v3/activities/%v", msg.ObjectID), nil)
+		if err != nil {
+			log.Fatalf("Could not create request: %v", err)
+		}
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", user.AccessToken))
 
-	response, err := client.Do(req)
-	if err != nil {
-		log.Fatalf("Could not make request: %v", err)
-		return
-	}
-	defer response.Body.Close()
+		response, err := client.Do(req)
+		if err != nil {
+			log.Fatalf("Could not make request: %v", err)
+		}
+		defer response.Body.Close()
 
-	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
-		log.Fatalf("Could not decode response body: %v", err)
+		if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+			log.Fatalf("Could not decode response body: %v", err)
+		}
 	}
 	return
 }
