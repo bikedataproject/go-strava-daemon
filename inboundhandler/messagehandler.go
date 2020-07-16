@@ -11,6 +11,6 @@ type StravaWebhookMessage struct {
 	Updates        interface{} `json:"updates"`
 }
 
-func (msg StravaWebhookMessage) GetActivityData() {
-
+func (msg StravaWebhookMessage) GetActivityData(userID string, activityID string) (result interface{}, err error) {
+	return
 }

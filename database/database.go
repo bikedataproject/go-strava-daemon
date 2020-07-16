@@ -17,8 +17,19 @@ type Database struct {
 	PostgresPort       int
 	PostgresDb         string
 	PostgresRequireSSL string
+	Connection         *sql.DB
+}
 
-	Connection *sql.DB
+// User : Struct to respresent a user object from the database
+type User struct {
+	ID                int
+	Provider          string
+	ProviderUser      string
+	AccessToken       string
+	RefreshToken      string
+	TokenCreationDate string
+	ExpiresAt         int
+	ExpiresIn         int
 }
 
 // getDBConnectionString : Generate
@@ -26,13 +37,12 @@ func (db Database) getDBConnectionString() string {
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%v", db.PostgresHost, db.PostgresPort, db.PostgresUser, db.PostgresPassword, db.PostgresDb, db.PostgresRequireSSL)
 }
 
-// ping : Check if the database can be reached
-func (db Database) ping() {
+// checkConnection : Check if the database can be reached
+func (db Database) checkConnection() bool {
 	if err := db.Connection.Ping(); err == nil {
-		log.Infof("Database connection says Pong")
-	} else {
-		log.Fatalf("Could not reach database")
+		return true
 	}
+	return false
 }
 
 // Connect : Connect to Postgres
@@ -40,6 +50,20 @@ func (db Database) Connect() (err error) {
 	if db.Connection, err = sql.Open("postgres", db.getDBConnectionString()); err != nil {
 		return
 	}
-	db.ping()
+	if db.checkConnection() {
+		log.Info("Database is reachable")
+	} else {
+		log.Fatal("Database is unreachable")
+	}
+	return
+}
+
+// GetUserToken : Request a user token for the ID
+func (db Database) GetUserToken(userID string) (usr User, err error) {
+	connection, err := sql.Open("postgres", db.getDBConnectionString())
+	if err != nil {
+		return
+	}
+	err = connection.QueryRow("SELECT * FROM public.\"Users\" where \"ProviderUser\"=$1", userID).Scan(&usr.ID, &usr.Provider, &usr.ProviderUser, &usr.AccessToken, &usr.RefreshToken, &usr.TokenCreationDate, &usr.ExpiresAt, &usr.ExpiresIn)
 	return
 }

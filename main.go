@@ -39,6 +39,12 @@ func main() {
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
 	db.Connect()
+	user, err := db.GetUserToken("MY_STRAVA_USER")
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Info(user.AccessToken)
+	}
 
 	in := inboundhandler.Handler{
 		DatabaseConnection: &db,
