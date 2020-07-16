@@ -40,19 +40,12 @@ func main() {
 	}
 	db.Connect()
 
-	user, err := db.GetUserData("63251108")
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		log.Info(user.AccessToken)
-	}
-
 	in := inboundhandler.Handler{
 		DatabaseConnection: &db,
 	}
 
 	// Subscribe in a thread
-	//go out.SubscribeToStrava()
+	go out.SubscribeToStrava()
 
 	// Launch the API
 	log.Info("Launching HTTP API")

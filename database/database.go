@@ -84,7 +84,7 @@ func (db Database) GetUserData(userID string) (usr User, err error) {
 	if err != nil {
 		return
 	}
-	err = connection.QueryRow("SELECT \"UserId\", \"AccessToken\" FROM \"Users\" where \"ProviderUser\"=$1", userID).Scan(&usr.ID, &usr.AccessToken)
+	err = connection.QueryRow("SELECT \"Id\", \"AccessToken\" FROM \"Users\" where \"ProviderUser\"=$1", userID).Scan(&usr.ID, &usr.AccessToken)
 	return
 }
 
