@@ -1,4 +1,4 @@
-package inboundhandler
+package main
 
 import (
 	"encoding/json"
@@ -18,8 +18,6 @@ type StravaWebhookMessage struct {
 	SubscriptionID int         `json:"subscription_id"`
 	EventTime      int         `json:"event_time"`
 	Updates        interface{} `json:"updates"`
-
-	MessageHandler Handler
 }
 
 // StravaActivity : Struct representing an activity from Strava
@@ -46,7 +44,7 @@ type StravaActivity struct {
 func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err error) {
 	if msg.ObjectType == "activity" {
 		// Get owner information from database
-		user, err := msg.MessageHandler.DatabaseConnection.GetUserData(string(msg.OwnerID))
+		user, err := db.GetUserData(string(msg.OwnerID))
 		if err != nil {
 			log.Fatalf("Could not get user information: %v", err)
 		}
@@ -72,6 +70,7 @@ func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err er
 		// Check activity type: cycling
 		if result.Type == "Ride" && result.WorkoutType == 10 {
 			// TODO: Write webhooks to database
+			log.Info(result.Map.Polyline)
 		}
 	}
 	return

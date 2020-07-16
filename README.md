@@ -9,7 +9,7 @@ This repository contains the daemon service to fetch Strava user data.
 This daemon requires some `ENV` variables to be set. Below is an example:
 
 ```sh
-export CONFIG_POSTGRESENDPOINT="localhost"
+export CONFIG_POSTGRESHOST="localhost"
 export CONFIG_POSTGRESPORT="5432"
 export CONFIG_POSTGRESPASSWORD="MyPostgresPassword"
 export CONFIG_POSTGRESUSER="postgres"

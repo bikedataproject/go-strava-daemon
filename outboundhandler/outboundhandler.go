@@ -43,7 +43,7 @@ func (conf StravaHandler) makeRequest(endpoint string, httpverb string, payload 
 // SubscribeToStrava : Subscribe to the strava webhooks service
 func (conf StravaHandler) SubscribeToStrava() (err error) {
 	log.Info("Subscribing to Strava")
-	response, err := conf.makeRequest(fmt.Sprintf("%v?client_id=%s&client_secret=%s&callback_url=%s&verify_token=%s", conf.EndPoint, conf.ClientID, conf.ClientSecret, conf.CallbackURL, conf.VerifyToken), "POST", &bytes.Buffer{})
+	response, err := conf.makeRequest(fmt.Sprintf("%s?client_id=%s&client_secret=%s&callback_url=%s&verify_token=%s", conf.EndPoint, conf.ClientID, conf.ClientSecret, conf.CallbackURL, conf.VerifyToken), "POST", &bytes.Buffer{})
 	if err != nil {
 		return err
 	}
