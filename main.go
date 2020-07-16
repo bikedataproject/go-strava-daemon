@@ -32,7 +32,14 @@ func main() {
 	// Subscribe in a thread
 	go out.SubscribeToStrava()
 
+	// Launch the API
 	log.Info("Launching HTTP API")
+	// Handle endpoints - add below if required
 	http.HandleFunc("/webhook/strava", inboundhandler.HandleStravaWebhook)
-	log.Fatal(http.ListenAndServe(":5000", nil))
+
+	// Handle HTTP exceptions: unsubscribe from strava on exception
+	if err := http.ListenAndServe(":5000", nil); err != nil {
+		out.UnsubscribeFromStrava()
+		log.Fatalf("Webserver crashed: %v", err)
+	}
 }
