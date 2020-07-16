@@ -148,6 +148,5 @@ func (db Database) AddContribution(contribution Contribution, user User) (err er
 	if _, err = connection.Query(query, &userContrib.UserContributionID, &userContrib.UserID, &userContrib.ContributionID); err != nil {
 		log.Warnf("Could not insert value into contributions: %v", err)
 	}
-
 	return
 }

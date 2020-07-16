@@ -68,6 +68,11 @@ func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err er
 		if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
 			log.Fatalf("Could not decode response body: %v", err)
 		}
+
+		// Check activity type: cycling
+		if result.Type == "Ride" && result.WorkoutType == 10 {
+			// TODO: Write webhooks to database
+		}
 	}
 	return
 }
