@@ -2,7 +2,7 @@ package config
 
 // Configuration : this struct contains ENV configuration parameters
 type Config struct {
-	PostgresEndpoint   string `required:"true"`
+	PostgresHost       string `required:"true"`
 	PostgresUser       string `required:"true"`
 	PostgresPassword   string `required:"true"`
 	PostgresPort       int    `default:"5432"`

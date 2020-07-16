@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"go-strava-daemon/config"
+	"go-strava-daemon/database"
 	"go-strava-daemon/inboundhandler"
 	"go-strava-daemon/outboundhandler"
 
@@ -29,8 +30,18 @@ func main() {
 		EndPoint:     conf.StravaWebhookURL,
 	}
 
+	db := database.Database{
+		PostgresHost:       conf.PostgresHost,
+		PostgresUser:       conf.PostgresUser,
+		PostgresPassword:   conf.PostgresPassword,
+		PostgresPort:       conf.PostgresPort,
+		PostgresDb:         conf.PostgresDb,
+		PostgresRequireSSL: conf.PostgresRequireSSL,
+	}
+	db.Connect()
+
 	// Subscribe in a thread
-	go out.SubscribeToStrava()
+	//go out.SubscribeToStrava()
 
 	// Launch the API
 	log.Info("Launching HTTP API")
