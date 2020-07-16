@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 )
