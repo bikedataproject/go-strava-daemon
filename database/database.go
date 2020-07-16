@@ -58,12 +58,12 @@ func (db Database) Connect() (err error) {
 	return
 }
 
-// GetUserToken : Request a user token for the ID
-func (db Database) GetUserToken(userID string) (usr User, err error) {
+// GetUserData : Request a user token for the ID
+func (db Database) GetUserData(userID string) (usr User, err error) {
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
 		return
 	}
-	err = connection.QueryRow("SELECT * FROM public.\"Users\" where \"ProviderUser\"=$1", userID).Scan(&usr.ID, &usr.Provider, &usr.ProviderUser, &usr.AccessToken, &usr.RefreshToken, &usr.TokenCreationDate, &usr.ExpiresAt, &usr.ExpiresIn)
+	err = connection.QueryRow("SELECT \"AccessToken\" FROM public.\"Users\" where \"ProviderUser\"=$1", userID).Scan(&usr.AccessToken)
 	return
 }

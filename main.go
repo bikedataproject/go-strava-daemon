@@ -39,7 +39,8 @@ func main() {
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
 	db.Connect()
-	user, err := db.GetUserToken("MY_STRAVA_USER")
+
+	user, err := db.GetUserData("63251108")
 	if err != nil {
 		log.Fatal(err)
 	} else {
