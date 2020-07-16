@@ -40,13 +40,17 @@ func main() {
 	}
 	db.Connect()
 
+	in := inboundhandler.Handler{
+		DatabaseConnection: &db,
+	}
+
 	// Subscribe in a thread
 	//go out.SubscribeToStrava()
 
 	// Launch the API
 	log.Info("Launching HTTP API")
 	// Handle endpoints - add below if required
-	http.HandleFunc("/webhook/strava", inboundhandler.HandleStravaWebhook)
+	http.HandleFunc("/webhook/strava", in.HandleStravaWebhook)
 
 	// Handle HTTP exceptions: unsubscribe from strava on exception
 	if err := http.ListenAndServe(":5000", nil); err != nil {

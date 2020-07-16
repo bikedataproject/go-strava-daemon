@@ -3,6 +3,7 @@ package inboundhandler
 import (
 	"encoding/json"
 	"fmt"
+	"go-strava-daemon/database"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -18,6 +19,11 @@ type StravaWebhookValidationRequest struct {
 	HubChallenge string `json:"hub.challenge"`
 }
 
+// Handler : the parent handler object
+type Handler struct {
+	DatabaseConnection *database.Database
+}
+
 // SendJSONResponse : Send a struct as JSON response
 func SendJSONResponse(w http.ResponseWriter, obj interface{}) {
 	response, err := json.Marshal(&obj)
@@ -29,7 +35,7 @@ func SendJSONResponse(w http.ResponseWriter, obj interface{}) {
 }
 
 // HandleStravaWebhook : Handle incoming requests from Strava
-func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
+func (handler Handler) HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		defer r.Body.Close()
