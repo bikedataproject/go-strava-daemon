@@ -28,8 +28,11 @@ func main() {
 		VerifyToken:  "JustSomeToken",
 		EndPoint:     conf.StravaWebhookURL,
 	}
-	out.SubscribeToStrava()
 
+	// Subscribe in a thread
+	go out.SubscribeToStrava()
+
+	log.Info("Launching HTTP API")
 	http.HandleFunc("/webhook/strava", inboundhandler.HandleStravaWebhook)
 	log.Fatal(http.ListenAndServe(":5000", nil))
 }

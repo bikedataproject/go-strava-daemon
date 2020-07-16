@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/schema"
 	"github.com/prometheus/common/log"
 )
 
@@ -14,16 +13,9 @@ type ResponseMessage struct {
 	Message string `json:"message"`
 }
 
-// ValidResponse : Response to send to Strava on a valid request
-type ValidResponse struct {
-	HubChallenge string `json:"hub.challenge"`
-}
-
 // StravaWebhookValidationRequest : Body of the incoming GET request to verify the endpoint
 type StravaWebhookValidationRequest struct {
-	HubMode        string `json:"hub.mode"`
-	HubChallenge   string `json:"hub.challenge"`
-	HubVerifyToken string `json:"hub.verify_token"`
+	HubChallenge string `json:"hub.challenge"`
 }
 
 // StravaWebhookMessage : Body of incoming webhook messages
@@ -59,6 +51,7 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 				Message: "Could not decode JSON body",
 			})
 		} else {
+			log.Infof("Message type: %s, Object type: %s; Object ID: %v", msg.AspectType, msg.ObjectType, msg.ObjectID)
 			SendJSONResponse(w, ResponseMessage{
 				Message: "Ok",
 			})
@@ -66,14 +59,16 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 		break
 	case "GET":
 		// Try to fetch a message from Strava
-		var decoder = schema.NewDecoder()
-		msg := StravaWebhookValidationRequest{}
-		if err := decoder.Decode(&msg, r.URL.Query()); err != nil {
-			log.Warnf("Could not decode URL parameters into validation request: %v", err)
-			SendJSONResponse(w, ResponseMessage{
-				Message: "Recieved values were invalid!",
-			})
+		challenge, err := getURLParam("hub.challenge", r)
+		if err != nil {
+			log.Warn("Could not get hub challenge from URL params")
+		} else {
+			msg := StravaWebhookValidationRequest{
+				HubChallenge: challenge,
+			}
+			SendJSONResponse(w, msg)
 		}
+
 		break
 	default:
 		log.Warnf("Received a HTTP %s request instead of GET or POST...", r.Method)
@@ -82,4 +77,13 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 		})
 		break
 	}
+}
+
+// getURLParam : Request a parameter from the URL
+func getURLParam(paramName string, request *http.Request) (result string, err error) {
+	result = request.URL.Query()[paramName][0]
+	if result == "" {
+		err = fmt.Errorf("Param not found in URL")
+	}
+	return
 }
