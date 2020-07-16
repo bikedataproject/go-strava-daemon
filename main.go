@@ -41,6 +41,9 @@ func main() {
 	}
 	db.Connect()
 
+	// Unsubscribe from previous connections
+	out.UnsubscribeFromStrava()
+
 	// Subscribe in a thread
 	go out.SubscribeToStrava()
 
@@ -49,9 +52,8 @@ func main() {
 	// Handle endpoints - add below if required
 	http.HandleFunc("/webhook/strava", HandleStravaWebhook)
 
-	// Handle HTTP exceptions: unsubscribe from strava on exception
+	// Run the server untill a Fatal error occurs
 	if err := http.ListenAndServe(":5000", nil); err != nil {
-		out.UnsubscribeFromStrava()
 		log.Fatalf("Webserver crashed: %v", err)
 	}
 }
