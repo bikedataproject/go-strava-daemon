@@ -76,8 +76,10 @@ func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err er
 
 		// Check activity type: cycling
 		if result.Type == "Ride" && result.WorkoutType == 10 {
-			// TODO: Write webhooks to database
-			log.Info(result.Map.Polyline)
+			// Convert polyline to useable format
+			result.decodePolyline()
+		} else {
+			err = fmt.Errorf("The activity is not a cycling trip %s", "")
 		}
 	}
 	return

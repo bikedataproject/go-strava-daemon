@@ -42,10 +42,11 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 		} else {
 			log.Infof("Message type: %s, Object type: %s; Object ID: %v", msg.AspectType, msg.ObjectType, msg.ObjectID)
 			// Get activity data
-			if x, err := msg.GetActivityData(); err != nil {
+			if data, err := msg.GetActivityData(); err != nil {
 				log.Warnf("Could not get activity data: %v", err)
 			} else {
-				log.Info(x)
+				// TODO: send to database
+				log.Info(data)
 			}
 			SendJSONResponse(w, ResponseMessage{
 				Message: "Ok",
