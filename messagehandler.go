@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -37,7 +38,13 @@ type StravaActivity struct {
 		ResourceState   int    `json:"resource_state"`
 		SummaryPolyline string `json:"summary_polyline"`
 	} `json:"map"`
-	Commute bool `json:"commute"`
+	Commute    bool `json:"commute"`
+	LineString *geo.Path
+}
+
+// decodePolyline : Convert an encoded polyline into a decoded geo.Path object
+func (msg StravaActivity) decodePolyline() {
+	msg.LineString = geo.NewPathFromEncoding(msg.Map.Polyline)
 }
 
 // GetActivityData : Get data for an activity

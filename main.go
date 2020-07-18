@@ -2,17 +2,16 @@ package main
 
 import (
 	// Import the Posgres driver for the database/sql package
+
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
-
+	"github.com/koding/multiconfig"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 
 	"go-strava-daemon/config"
 	"go-strava-daemon/database"
 	"go-strava-daemon/outboundhandler"
-
-	"github.com/koding/multiconfig"
 )
 
 var db database.Database
