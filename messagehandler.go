@@ -67,8 +67,8 @@ func (activity StravaActivity) createTimeStampArray() (err error) {
 	return
 }
 
-// convertToContribution : Convert a Strava activity to a database contribution
-func (activity StravaActivity) convertToContribution() (contribution database.Contribution, err error) {
+// ConvertToContribution : Convert a Strava activity to a database contribution
+func (activity StravaActivity) ConvertToContribution() (contribution database.Contribution, err error) {
 	if newID, err := db.GetNewContributionID(); err == nil {
 		// Convert polyline to useable format
 		activity.decodePolyline()
@@ -120,7 +120,7 @@ func (msg StravaWebhookMessage) WriteToDatabase() error {
 		// Check activity type: cycling
 		if activity.Type == "Ride" && activity.WorkoutType == 10 {
 			// Convert activity to contribution
-			contrib, err := activity.convertToContribution()
+			contrib, err := activity.ConvertToContribution()
 			if err != nil {
 				return fmt.Errorf("Could not convert activity to contribution: %v", err)
 			}

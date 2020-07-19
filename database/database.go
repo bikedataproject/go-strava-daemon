@@ -142,10 +142,10 @@ func (db Database) AddContribution(contribution Contribution, user User) (err er
 	// Write Contribution
 	query := `
 	INSERT INTO "Contributions"
-	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom")
-	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`
-	if _, err = connection.Exec(query, &contribution.ContributionID, &contribution.UserAgent, &contribution.Distance, &contribution.TimeStampStart, &contribution.TimeStampStop, &contribution.Duration); err != nil {
+	if _, err = connection.Exec(query, &contribution.ContributionID, &contribution.UserAgent, &contribution.Distance, &contribution.TimeStampStart, &contribution.TimeStampStop, &contribution.Duration, &contribution.PointsGeom, &contribution.PointsTime); err != nil {
 		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
 
