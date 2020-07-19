@@ -45,7 +45,7 @@ func main() {
 	// Unsubscribe from previous connections
 	out.UnsubscribeFromStrava()
 
-	// Subscribe in a thread
+	// Subscribe in a thread so that the API can go online
 	go out.SubscribeToStrava()
 
 	// Launch the API

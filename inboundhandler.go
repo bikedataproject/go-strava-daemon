@@ -57,6 +57,7 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Warn("Could not get hub challenge from URL params")
 		} else {
+			log.Info("Received valid Strava verification request")
 			msg := StravaWebhookValidationRequest{
 				HubChallenge: challenge,
 			}

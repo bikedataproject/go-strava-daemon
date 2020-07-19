@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -41,7 +42,9 @@ func (conf StravaHandler) makeRequest(endpoint string, httpverb string, payload 
 }
 
 // SubscribeToStrava : Subscribe to the strava webhooks service
-func (conf StravaHandler) SubscribeToStrava() (err error) {
+func (conf *StravaHandler) SubscribeToStrava() (err error) {
+	log.Info("10 seconds idle before subscription request")
+	time.Sleep(10 * time.Second)
 	log.Info("Subscribing to Strava")
 	response, err := conf.makeRequest(fmt.Sprintf("%s?client_id=%s&client_secret=%s&callback_url=%s&verify_token=%s", conf.EndPoint, conf.ClientID, conf.ClientSecret, conf.CallbackURL, conf.VerifyToken), "POST", &bytes.Buffer{})
 	if err != nil {
