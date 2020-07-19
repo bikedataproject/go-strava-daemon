@@ -49,12 +49,12 @@ type StravaActivityMap struct {
 }
 
 // decodePolyline : Convert an encoded polyline into a decoded geo.Path object
-func (activity StravaActivity) decodePolyline() {
+func (activity *StravaActivity) decodePolyline() {
 	activity.LineString = geo.NewPathFromEncoding(activity.Map.Polyline)
 }
 
 // createTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
-func (activity StravaActivity) createTimeStampArray() (err error) {
+func (activity *StravaActivity) createTimeStampArray() (err error) {
 	start := activity.StartDateLocal
 	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
 	nbOfIntervals := 5
@@ -126,7 +126,7 @@ func (msg StravaWebhookMessage) WriteToDatabase() error {
 			}
 
 			// Store in database
-			if err = db.AddContribution(contrib, user); err != nil {
+			if err = db.AddContribution(&contrib, &user); err != nil {
 				err = fmt.Errorf("Could not save contribution: %v", err)
 			} else {
 				log.Info("Contribution written to database")

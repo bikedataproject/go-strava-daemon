@@ -119,7 +119,7 @@ func (db Database) GetNewUserContributionID() (id string, err error) {
 }
 
 // AddContribution : Create new user contribution
-func (db Database) AddContribution(contribution Contribution, user User) (err error) {
+func (db Database) AddContribution(contribution *Contribution, user *User) (err error) {
 	// Generate IDs
 	newUserContribID, err := db.GetNewUserContributionID()
 	if err != nil {
@@ -142,10 +142,10 @@ func (db Database) AddContribution(contribution Contribution, user User) (err er
 	// Write Contribution
 	query := `
 	INSERT INTO "Contributions"
-	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom")
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
-	if _, err = connection.Exec(query, &contribution.ContributionID, &contribution.UserAgent, &contribution.Distance, &contribution.TimeStampStart, &contribution.TimeStampStop, &contribution.Duration, &contribution.PointsGeom, &contribution.PointsTime); err != nil {
+	if _, err = connection.Exec(query, contribution.ContributionID, contribution.UserAgent, contribution.Distance, contribution.TimeStampStart, contribution.TimeStampStop, contribution.Duration, contribution.PointsGeom.ToWKT()); err != nil {
 		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
 
