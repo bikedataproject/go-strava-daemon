@@ -30,6 +30,8 @@ type StravaActivity struct {
 	Type               string    `json:"type"`
 	WorkoutType        int       `json:"workout_type"`
 	StartDateLocal     time.Time `json:"start_date_local"`
+	EndDateLocal       time.Time
+	PointsTime         []time.Time
 	StartLatlng        []float64 `json:"start_latlng"`
 	EndLatlng          []float64 `json:"end_latlng"`
 	Map                struct {
@@ -45,6 +47,20 @@ type StravaActivity struct {
 // decodePolyline : Convert an encoded polyline into a decoded geo.Path object
 func (msg StravaActivity) decodePolyline() {
 	msg.LineString = geo.NewPathFromEncoding(msg.Map.Polyline)
+}
+
+// CreateTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
+func (activity StravaActivity) CreateTimeStampArray() (err error) {
+	start := activity.StartDateLocal
+	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
+	nbOfIntervals := 5
+	intervalLength := activity.ElapsedTime / nbOfIntervals
+	var timeStamps []time.Time
+	for i := 0; i < nbOfIntervals; i++ {
+		timeStamps = append(timeStamps, start.Add(time.Second*time.Duration((intervalLength*i))))
+	}
+	activity.PointsTime = timeStamps
+	return
 }
 
 // GetActivityData : Get data for an activity
@@ -76,10 +92,15 @@ func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err er
 
 		// Check activity type: cycling
 		if result.Type == "Ride" && result.WorkoutType == 10 {
+<<<<<<< HEAD:messagehandler.go
 			// Convert polyline to useable format
 			result.decodePolyline()
 		} else {
 			err = fmt.Errorf("The activity is not a cycling trip %s", "")
+=======
+			// TODO: Write webhooks to database
+			log.Info(result.Map.Polyline)
+>>>>>>> develop:inboundhandler/messagehandler.go
 		}
 	}
 	return
