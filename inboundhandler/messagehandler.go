@@ -31,6 +31,8 @@ type StravaActivity struct {
 	Type               string    `json:"type"`
 	WorkoutType        int       `json:"workout_type"`
 	StartDateLocal     time.Time `json:"start_date_local"`
+	EndDateLocal       time.Time
+	PointsTime         []time.Time
 	StartLatlng        []float64 `json:"start_latlng"`
 	EndLatlng          []float64 `json:"end_latlng"`
 	Map                struct {
@@ -40,6 +42,20 @@ type StravaActivity struct {
 		SummaryPolyline string `json:"summary_polyline"`
 	} `json:"map"`
 	Commute bool `json:"commute"`
+}
+
+// CreateTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
+func (activity StravaActivity) CreateTimeStampArray() (err error) {
+	start := activity.StartDateLocal
+	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
+	nbOfIntervals := 5
+	intervalLength := activity.ElapsedTime / nbOfIntervals
+	var timeStamps []time.Time
+	for i := 0; i < nbOfIntervals; i++ {
+		timeStamps = append(timeStamps, start.Add(time.Second*time.Duration((intervalLength*i))))
+	}
+	activity.PointsTime = timeStamps
+	return
 }
 
 // GetActivityData : Get data for an activity
