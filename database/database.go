@@ -6,6 +6,7 @@ import (
 	"time"
 
 	// Import postgres backend for database/sql module
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
@@ -142,10 +143,10 @@ func (db Database) AddContribution(contribution *Contribution, user *User) (err 
 	// Write Contribution
 	query := `
 	INSERT INTO "Contributions"
-	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom")
-	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`
-	if _, err = connection.Exec(query, contribution.ContributionID, contribution.UserAgent, contribution.Distance, contribution.TimeStampStart, contribution.TimeStampStop, contribution.Duration, contribution.PointsGeom.ToWKT()); err != nil {
+	if _, err = connection.Exec(query, contribution.ContributionID, contribution.UserAgent, contribution.Distance, contribution.TimeStampStart, contribution.TimeStampStop, contribution.Duration, contribution.PointsGeom.ToWKT(), pq.Array(contribution.PointsTime)); err != nil {
 		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
 
