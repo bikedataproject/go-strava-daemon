@@ -7,6 +7,7 @@ import (
 
 	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
+	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,7 +30,7 @@ type User struct {
 	ProviderUser      string
 	AccessToken       string
 	RefreshToken      string
-	TokenCreationDate string
+	TokenCreationDate time.Time
 	ExpiresAt         int
 	ExpiresIn         int
 }
@@ -42,8 +43,8 @@ type Contribution struct {
 	TimeStampStart time.Time
 	TimeStampStop  time.Time
 	Duration       int
-	PointsGeom     []byte
-	PointsTime     []byte
+	PointsGeom     *geo.Path
+	PointsTime     []time.Time
 }
 
 // UserContribution : Struct to respresent a UserContribution object from the database
@@ -141,11 +142,11 @@ func (db Database) AddContribution(contribution Contribution, user User) (err er
 	// Write Contribution
 	query := `
 	INSERT INTO "Contributions"
-	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom")
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
-	if _, err = connection.Query(query, &contribution.ContributionID, &contribution.UserAgent, &contribution.Distance, &contribution.TimeStampStart, &contribution.TimeStampStop, &contribution.Duration, &contribution.PointsGeom, &contribution.PointsTime); err != nil {
-		log.Warnf("Could not insert value into contributions: %v", err)
+	if _, err = connection.Exec(query, &contribution.ContributionID, &contribution.UserAgent, &contribution.Distance, &contribution.TimeStampStart, &contribution.TimeStampStop, &contribution.Duration); err != nil {
+		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
 
 	// Write WriteUserContribution
@@ -154,8 +155,8 @@ func (db Database) AddContribution(contribution Contribution, user User) (err er
 	("UserContributionId", "UserId", "ContributionId")
 	VALUES ($1, $2, $3)
 	`
-	if _, err = connection.Query(query, &userContrib.UserContributionID, &userContrib.UserID, &userContrib.ContributionID); err != nil {
-		log.Warnf("Could not insert value into contributions: %v", err)
+	if _, err = connection.Exec(query, &userContrib.UserContributionID, &userContrib.UserID, &userContrib.ContributionID); err != nil {
+		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
 	return
 }

@@ -33,16 +33,19 @@ type StravaActivity struct {
 	StartDateLocal     time.Time `json:"start_date_local"`
 	EndDateLocal       time.Time
 	PointsTime         []time.Time
-	StartLatlng        []float64 `json:"start_latlng"`
-	EndLatlng          []float64 `json:"end_latlng"`
-	Map                struct {
-		ID              string `json:"id"`
-		Polyline        string `json:"polyline"`
-		ResourceState   int    `json:"resource_state"`
-		SummaryPolyline string `json:"summary_polyline"`
-	} `json:"map"`
-	Commute    bool `json:"commute"`
-	LineString *geo.Path
+	StartLatlng        []float64         `json:"start_latlng"`
+	EndLatlng          []float64         `json:"end_latlng"`
+	Map                StravaActivityMap `json:"map"`
+	Commute            bool              `json:"commute"`
+	LineString         *geo.Path
+}
+
+// StravaActivityMap : Struct representing the Map field in an activity message
+type StravaActivityMap struct {
+	ID              string `json:"id"`
+	Polyline        string `json:"polyline"`
+	ResourceState   int    `json:"resource_state"`
+	SummaryPolyline string `json:"summary_polyline"`
 }
 
 // decodePolyline : Convert an encoded polyline into a decoded geo.Path object
@@ -66,56 +69,71 @@ func (activity StravaActivity) createTimeStampArray() (err error) {
 
 // convertToContribution : Convert a Strava activity to a database contribution
 func (activity StravaActivity) convertToContribution() (contribution database.Contribution, err error) {
+	if newID, err := db.GetNewContributionID(); err == nil {
+		// Convert polyline to useable format
+		activity.decodePolyline()
+		// Generate timestamp per coordinate
+		activity.createTimeStampArray()
+		contribution = database.Contribution{
+			ContributionID: newID,
+			UserAgent:      "app/Strava",
+			Distance:       activity.Distance,
+			TimeStampStart: activity.StartDateLocal,
+			TimeStampStop:  activity.EndDateLocal,
+			Duration:       activity.ElapsedTime,
+			PointsGeom:     activity.LineString,
+			PointsTime:     activity.PointsTime,
+		}
+	}
 	return
 }
 
-// GetActivityData : Get data for an activity
-func (msg StravaWebhookMessage) GetActivityData() (activity StravaActivity, err error) {
+// WriteToDatabase : Write activity message to database
+func (msg StravaWebhookMessage) WriteToDatabase() error {
 	if msg.ObjectType == "activity" {
+		var activity StravaActivity
+
 		// Get owner information from database
 		user, err := db.GetUserData(string(msg.OwnerID))
 		if err != nil {
-			log.Fatalf("Could not get user information: %v", err)
+			return fmt.Errorf("Could not get user information: %v", err)
 		}
 
 		// Fetch activity
 		client := &http.Client{}
 		req, err := http.NewRequest("GET", fmt.Sprintf("https://www.strava.com/api/v3/activities/%v", msg.ObjectID), nil)
 		if err != nil {
-			log.Fatalf("Could not create request: %v", err)
+			return fmt.Errorf("Could not create request: %v", err)
 		}
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", user.AccessToken))
 
 		response, err := client.Do(req)
 		if err != nil {
-			log.Fatalf("Could not make request: %v", err)
+			return fmt.Errorf("Could not make request: %v", err)
 		}
 		defer response.Body.Close()
 
 		if err := json.NewDecoder(response.Body).Decode(&activity); err != nil {
-			log.Fatalf("Could not decode response body: %v", err)
+			return fmt.Errorf("Could not decode response body: %v", err)
 		}
 
 		// Check activity type: cycling
 		if activity.Type == "Ride" && activity.WorkoutType == 10 {
-			// Convert polyline to useable format
-			activity.decodePolyline()
-			// Generate timestamp per coordinate
-			activity.createTimeStampArray()
-
 			// Convert activity to contribution
-			contrib := database.Contribution{
-				UserAgent: "app/Strava",
-				Distance:  activity.Distance,
+			contrib, err := activity.convertToContribution()
+			if err != nil {
+				return fmt.Errorf("Could not convert activity to contribution: %v", err)
 			}
+
+			// Store in database
 			if err = db.AddContribution(contrib, user); err != nil {
 				err = fmt.Errorf("Could not save contribution: %v", err)
 			} else {
-				log.Info("Contribution successfull")
+				log.Info("Contribution written to database")
 			}
 		} else {
-			err = fmt.Errorf("The activity is not a cycling trip %s", "")
+			return fmt.Errorf("The activity is not a cycling trip %s", "")
 		}
 	}
-	return
+	return nil
 }
