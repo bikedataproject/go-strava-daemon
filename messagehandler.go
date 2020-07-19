@@ -45,8 +45,8 @@ type StravaActivity struct {
 }
 
 // decodePolyline : Convert an encoded polyline into a decoded geo.Path object
-func (msg StravaActivity) decodePolyline() {
-	msg.LineString = geo.NewPathFromEncoding(msg.Map.Polyline)
+func (activity StravaActivity) decodePolyline() {
+	activity.LineString = geo.NewPathFromEncoding(activity.Map.Polyline)
 }
 
 // CreateTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
