@@ -67,7 +67,7 @@ func (conf StravaHandler) UnsubscribeFromStrava() {
 	decoder := json.NewDecoder(response.Body)
 	var msg []StravaSubscriptionMessage
 	if err := decoder.Decode(&msg); err != nil {
-		log.Fatalf("Could not decode subscription messages: %v", err)
+		log.Fatalf("Could not decode subscription message: %v", err)
 	}
 
 	for _, m := range msg {
