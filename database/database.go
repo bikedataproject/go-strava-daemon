@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
@@ -37,9 +38,9 @@ type User struct {
 type Contribution struct {
 	ContributionID string
 	UserAgent      string
-	Distance       int
-	TimeStampStart string
-	TimeStampStop  string
+	Distance       float32
+	TimeStampStart time.Time
+	TimeStampStop  time.Time
 	Duration       int
 	PointsGeom     []byte
 	PointsTime     []byte
@@ -59,10 +60,8 @@ func (db Database) getDBConnectionString() string {
 
 // checkConnection : Check if the database can be reached
 func (db Database) checkConnection() bool {
-	if err := db.Connection.Ping(); err == nil {
-		return true
-	}
-	return false
+	err := db.Connection.Ping()
+	return err == nil
 }
 
 // Connect : Connect to Postgres
@@ -84,7 +83,11 @@ func (db Database) GetUserData(userID string) (usr User, err error) {
 	if err != nil {
 		return
 	}
-	err = connection.QueryRow("SELECT \"Id\", \"AccessToken\" FROM \"Users\" where \"ProviderUser\"=$1", userID).Scan(&usr.ID, &usr.AccessToken)
+	err = connection.QueryRow(`
+	SELECT "Id", "AccessToken"
+	FROM "Users"
+	WHERE "ProviderUser"=$1;
+	`, userID).Scan(&usr.ID, &usr.AccessToken)
 	return
 }
 
@@ -94,7 +97,10 @@ func (db Database) GetNewContributionID() (id string, err error) {
 	if err != nil {
 		return
 	}
-	err = connection.QueryRow("SELECT Count(1) FROM \"Contributions\";").Scan(&id)
+	err = connection.QueryRow(`
+	SELECT Count(1)
+	FROM "Contributions";
+	`).Scan(&id)
 	return
 }
 
@@ -104,7 +110,10 @@ func (db Database) GetNewUserContributionID() (id string, err error) {
 	if err != nil {
 		return
 	}
-	err = connection.QueryRow("SELECT Count(1) FROM \"UserContributions\";").Scan(&id)
+	err = connection.QueryRow(`
+	SELECT Count(1)
+	FROM "UserContributions";
+	`).Scan(&id)
 	return
 }
 

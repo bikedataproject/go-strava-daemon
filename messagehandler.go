@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"go-strava-daemon/database"
 	"net/http"
 	"time"
 
@@ -23,7 +24,7 @@ type StravaWebhookMessage struct {
 
 // StravaActivity : Struct representing an activity from Strava
 type StravaActivity struct {
-	Distance           float64   `json:"distance"`
+	Distance           float32   `json:"distance"`
 	MovingTime         int       `json:"moving_time"`
 	ElapsedTime        int       `json:"elapsed_time"`
 	TotalElevationGain float64   `json:"total_elevation_gain"`
@@ -49,8 +50,8 @@ func (activity StravaActivity) decodePolyline() {
 	activity.LineString = geo.NewPathFromEncoding(activity.Map.Polyline)
 }
 
-// CreateTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
-func (activity StravaActivity) CreateTimeStampArray() (err error) {
+// createTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
+func (activity StravaActivity) createTimeStampArray() (err error) {
 	start := activity.StartDateLocal
 	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
 	nbOfIntervals := 5
@@ -63,8 +64,13 @@ func (activity StravaActivity) CreateTimeStampArray() (err error) {
 	return
 }
 
+// convertToContribution : Convert a Strava activity to a database contribution
+func (activity StravaActivity) convertToContribution() (contribution database.Contribution, err error) {
+	return
+}
+
 // GetActivityData : Get data for an activity
-func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err error) {
+func (msg StravaWebhookMessage) GetActivityData() (activity StravaActivity, err error) {
 	if msg.ObjectType == "activity" {
 		// Get owner information from database
 		user, err := db.GetUserData(string(msg.OwnerID))
@@ -86,18 +92,29 @@ func (msg StravaWebhookMessage) GetActivityData() (result StravaActivity, err er
 		}
 		defer response.Body.Close()
 
-		if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+		if err := json.NewDecoder(response.Body).Decode(&activity); err != nil {
 			log.Fatalf("Could not decode response body: %v", err)
 		}
 
 		// Check activity type: cycling
-		if result.Type == "Ride" && result.WorkoutType == 10 {
+		if activity.Type == "Ride" && activity.WorkoutType == 10 {
 			// Convert polyline to useable format
-			result.decodePolyline()
+			activity.decodePolyline()
+			// Generate timestamp per coordinate
+			activity.createTimeStampArray()
+
+			// Convert activity to contribution
+			contrib := database.Contribution{
+				UserAgent: "app/Strava",
+				Distance:  activity.Distance,
+			}
+			if err = db.AddContribution(contrib, user); err != nil {
+				err = fmt.Errorf("Could not save contribution: %v", err)
+			} else {
+				log.Info("Contribution successfull")
+			}
 		} else {
 			err = fmt.Errorf("The activity is not a cycling trip %s", "")
-			// TODO: Write webhooks to database
-			log.Info(result.Map.Polyline)
 		}
 	}
 	return
