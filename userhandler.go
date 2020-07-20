@@ -28,6 +28,6 @@ func HandleExpiringUsers() {
 		}
 
 		// Loop every 5 minutes
-		time.Sleep(5 * time.Minute)
+		time.Sleep(10 * time.Minute)
 	}
 }
