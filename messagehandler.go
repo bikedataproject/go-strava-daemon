@@ -57,7 +57,7 @@ func (activity *StravaActivity) decodePolyline() {
 func (activity *StravaActivity) createTimeStampArray() (err error) {
 	start := activity.StartDateLocal
 	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
-	nbOfIntervals := 5
+	nbOfIntervals := activity.LineString.PointSet.Length()
 	intervalLength := activity.ElapsedTime / nbOfIntervals
 	var timeStamps []time.Time
 	for i := 0; i < nbOfIntervals; i++ {
