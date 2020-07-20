@@ -173,7 +173,7 @@ func (db Database) GetExpiringUsers() (users []User, err error) {
 	// Fetch expiring users
 	response, err := connection.Query(`
 	SELECT "Id", "RefreshToken", "UserIdentifier" FROM "Users"
-	WHERE "ExpiresAt" <= $1;
+	WHERE "ExpiresAt" <= $1 and "Provider" = 'app/strava';
 	`, time.Now().Add(30*time.Minute).Unix())
 	if err != nil {
 		return
