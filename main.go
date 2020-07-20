@@ -4,6 +4,7 @@ import (
 	// Import the Posgres driver for the database/sql package
 
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/koding/multiconfig"
@@ -28,7 +29,7 @@ func main() {
 		ClientSecret: conf.StravaClientSecret,
 		CallbackURL:  conf.CallbackURL,
 		// Generate a new token on restarting
-		VerifyToken: string(time.Now().UnixNano()),
+		VerifyToken: strconv.FormatInt(time.Now().Unix(), 10),
 		EndPoint:    conf.StravaWebhookURL,
 	}
 
