@@ -1,0 +1,26 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag go-strava-daemon:staging
+    - name: Login to GitHub Packages with Docker
+      run: echo ${{ secrets.PACKAGES_SECRET }} | docker login https://docker.pkg.github.com -u xivk --password-stdin
+    - name: Tag the Docker image
+      run: docker tag go-strava-daemon:staging docker.pkg.github.com/bikedataproject/go-strava-daemon/go-strava-daemon:staging
+    - name: Build the Docker image for the package
+      run: docker build -t docker.pkg.github.com/bikedataproject/go-strava-daemon/go-strava-daemon:staging .
+    - name: Publish the image to GitHub packages.
+      run: docker push docker.pkg.github.com/bikedataproject/go-strava-daemon/go-strava-daemon:staging
