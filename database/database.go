@@ -161,3 +161,31 @@ func (db Database) AddContribution(contribution *Contribution, user *User) (err 
 	}
 	return
 }
+
+// GetExpiringUsers : Get users which are expiring within half an hour
+func (db Database) GetExpiringUsers() (users []User, err error) {
+	// Connect to database
+	connection, err := sql.Open("postgres", db.getDBConnectionString())
+	if err != nil {
+		return
+	}
+
+	response, err := connection.Query(`
+	SELECT "Id", "RefreshToken", "UserIdentifier" FROM "Users"
+	WHERE "ExpiresAt" <= $1;
+	`, time.Now().Add(30*time.Minute).Unix())
+	if err != nil {
+		return
+	}
+
+	for response.Next() {
+		var user User
+		err = response.Scan(&user.ID, &user.RefreshToken, &user.UserIdentifier)
+		if err != nil {
+			log.Warnf("Could not add expiring user to result: %v", err)
+		}
+		users = append(users, user)
+	}
+
+	return
+}
