@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	// Import postgres backend for database/sql module
 	"github.com/lib/pq"
+	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
 	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
@@ -159,5 +159,55 @@ func (db Database) AddContribution(contribution *Contribution, user *User) (err 
 	if _, err = connection.Exec(query, &userContrib.UserContributionID, &userContrib.UserID, &userContrib.ContributionID); err != nil {
 		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
+	return
+}
+
+// GetExpiringUsers : Get users which are expiring within half an hour
+func (db Database) GetExpiringUsers() (users []User, err error) {
+	// Connect to database
+	connection, err := sql.Open("postgres", db.getDBConnectionString())
+	if err != nil {
+		return
+	}
+
+	// Fetch expiring users
+	response, err := connection.Query(`
+	SELECT "Id", "RefreshToken", "UserIdentifier" FROM "Users"
+	WHERE "ExpiresAt" <= $1 and "Provider" = 'app/strava';
+	`, time.Now().Add(30*time.Minute).Unix())
+	if err != nil {
+		return
+	}
+
+	// Convert sql.Rows into User objects
+	for response.Next() {
+		var user User
+		err = response.Scan(&user.ID, &user.RefreshToken, &user.UserIdentifier)
+		if err != nil {
+			log.Warnf("Could not add expiring user to result: %v", err)
+		}
+		users = append(users, user)
+	}
+
+	return
+}
+
+// UpdateUser : Update an existing user
+func (db Database) UpdateUser(user *User) (err error) {
+	// Connect to database
+	connection, err := sql.Open("postgres", db.getDBConnectionString())
+	if err != nil {
+		return
+	}
+
+	// Update user in database
+	_, err = connection.Exec(`
+	UPDATE "Users"
+	SET "ExpiresAt" = $1,
+		"ExpiresIn" = $2,
+		"AccessToken" = $3,
+		"RefreshToken" = $4
+	WHERE "UserIdentifier" = $5;
+	`, &user.ExpiresAt, &user.ExpiresIn, &user.AccessToken, &user.RefreshToken, &user.UserIdentifier)
 	return
 }
