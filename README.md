@@ -1,5 +1,7 @@
 # go-strava-daemon
 
+![Docker Image CD](https://github.com/bikedataproject/go-strava-daemon/workflows/Docker%20Image%20CD/badge.svg) ![Docker Image CI](https://github.com/bikedataproject/go-strava-daemon/workflows/Docker%20Image%20CI/badge.svg)
+
 ## About this repository
 
 This repository contains the daemon service to fetch Strava user data.
