@@ -170,6 +170,7 @@ func (db Database) GetExpiringUsers() (users []User, err error) {
 		return
 	}
 
+	// Fetch expiring users
 	response, err := connection.Query(`
 	SELECT "Id", "RefreshToken", "UserIdentifier" FROM "Users"
 	WHERE "ExpiresAt" <= $1;
@@ -178,6 +179,7 @@ func (db Database) GetExpiringUsers() (users []User, err error) {
 		return
 	}
 
+	// Convert sql.Rows into User objects
 	for response.Next() {
 		var user User
 		err = response.Scan(&user.ID, &user.RefreshToken, &user.UserIdentifier)
