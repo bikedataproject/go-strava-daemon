@@ -16,7 +16,11 @@ import (
 	"go-strava-daemon/outboundhandler"
 )
 
-var db database.Database
+// Global variables
+var (
+	db  database.Database
+	out outboundhandler.StravaHandler
+)
 
 func main() {
 	// Load configuration values
@@ -24,7 +28,7 @@ func main() {
 	multiconfig.MustLoad(conf)
 
 	// Subscribe to Strava
-	out := outboundhandler.StravaHandler{
+	out = outboundhandler.StravaHandler{
 		ClientID:     conf.StravaClientID,
 		ClientSecret: conf.StravaClientSecret,
 		CallbackURL:  conf.CallbackURL,
@@ -48,6 +52,9 @@ func main() {
 
 	// Subscribe in a thread so that the API can go online
 	go out.SubscribeToStrava()
+
+	// Handle expiring users from Strava
+	go HandleExpiringUsers()
 
 	// Launch the API
 	log.Info("Launching HTTP API")

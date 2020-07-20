@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	// Import postgres backend for database/sql module
 	"github.com/lib/pq"
+	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
 	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
@@ -189,5 +189,25 @@ func (db Database) GetExpiringUsers() (users []User, err error) {
 		users = append(users, user)
 	}
 
+	return
+}
+
+// UpdateUser : Update an existing user
+func (db Database) UpdateUser(user *User) (err error) {
+	// Connect to database
+	connection, err := sql.Open("postgres", db.getDBConnectionString())
+	if err != nil {
+		return
+	}
+
+	// Update user in database
+	_, err = connection.Exec(`
+	UPDATE "Users"
+	SET "ExpiresAt" = $1,
+		"ExpiresIn" = $2,
+		"AccessToken" = $3,
+		"RefreshToken" = $4
+	WHERE "UserIdentifier" = $5;
+	`, &user.ExpiresAt, &user.ExpiresIn, &user.AccessToken, &user.RefreshToken, &user.UserIdentifier)
 	return
 }
