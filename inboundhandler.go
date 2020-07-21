@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,7 +41,6 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 				Message: "Could not decode JSON body",
 			})
 		} else {
-			log.Infof("Message type: %s, Object type: %s; Object ID: %v", msg.AspectType, msg.ObjectType, msg.ObjectID)
 			// Get activity data
 			if err := msg.WriteToDatabase(); err != nil {
 				log.Warnf("Could not get activity data: %v", err)
@@ -66,7 +66,7 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 
 		break
 	default:
-		log.Warnf("Received a HTTP %s request instead of GET or POST...", r.Method)
+		log.Warnf("Received a HTTP %s request instead of GET or POST on webhook handler", r.Method)
 		SendJSONResponse(w, ResponseMessage{
 			Message: fmt.Sprintf("Use HTTP POST or HTTP GET instead of %v", r.Method),
 		})
@@ -81,4 +81,44 @@ func getURLParam(paramName string, request *http.Request) (result string, err er
 		err = fmt.Errorf("Param not found in URL")
 	}
 	return
+}
+
+// HandleNewUser : Handle the registration of a new user
+func HandleNewUser(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+		// Attempt closing the body
+		defer r.Body.Close()
+
+		var user dbmodel.User
+		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			log.Errorf("Could not decode JSON body: %v", err)
+			SendJSONResponse(w, ResponseMessage{
+				Message: "Could not decode JSON body",
+			})
+		}
+
+		// Fetch user data
+		newUser, err := db.GetUserData(user.ProviderUser)
+		if err != nil {
+			log.Errorf("Could not fetch user data: %v", err)
+			SendJSONResponse(w, ResponseMessage{
+				Message: "Could not fetch user data",
+			})
+		}
+
+		HandleNewUserActivities(&newUser)
+		log.Infof("Loading data for new user %v", newUser.ID)
+		SendJSONResponse(w, ResponseMessage{
+			Message: "Could not fetch user data",
+		})
+		break
+	default:
+		log.Warnf("Received a HTTP %s request instead of GET or POST on new user handler", r.Method)
+		SendJSONResponse(w, ResponseMessage{
+			Message: fmt.Sprintf("Use HTTP POST instead of %v", r.Method),
+		})
+		break
+	}
 }

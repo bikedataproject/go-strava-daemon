@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,4 +31,9 @@ func HandleExpiringUsers() {
 		// Loop every 5 minutes
 		time.Sleep(10 * time.Minute)
 	}
+}
+
+// HandleNewUserActivities : Handle storing "old" activities of a new user
+func HandleNewUserActivities(user *dbmodel.User) {
+	// Fetch activities for user
 }

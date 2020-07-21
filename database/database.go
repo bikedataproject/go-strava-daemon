@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	"github.com/lib/pq"
+
 	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
 	geo "github.com/paulmach/go.geo"
@@ -80,7 +82,7 @@ func (db Database) Connect() (err error) {
 }
 
 // GetUserData : Request a user token for the ID
-func (db Database) GetUserData(userID string) (usr User, err error) {
+func (db Database) GetUserData(userID string) (usr dbmodel.User, err error) {
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
 		return
