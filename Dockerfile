@@ -13,6 +13,5 @@ RUN go mod download
 # Build project
 RUN go build -o go-strava-daemon .
 
-RUN ls
 # Execute the daemon
 CMD [ "./go-strava-daemon" ]
