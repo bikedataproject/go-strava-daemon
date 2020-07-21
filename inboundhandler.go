@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	"github.com/bikedataproject/go-bike-data-lib/strava"
 
 	log "github.com/sirupsen/logrus"
@@ -86,9 +87,9 @@ func HandleNewUser(w http.ResponseWriter, r *http.Request) {
 		// Attempt closing the body
 		defer r.Body.Close()
 
-		var user dbmodel.User
-		err := json.NewDecoder(r.Body).Decode(&user)
-		if err != nil {
+		var user *dbmodel.User
+		err := json.NewDecoder(r.Body).Decode(user)
+		if err != nil && user.ProviderUser != "" {
 			log.Errorf("Could not decode JSON body: %v", err)
 			SendJSONResponse(w, ResponseMessage{
 				Message: "Could not decode JSON body",
