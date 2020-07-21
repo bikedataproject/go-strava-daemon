@@ -105,7 +105,8 @@ func HandleNewUser(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
-		HandleNewUserActivities(&newUser)
+		// Fetch activities for users in a goroutine
+		go FetchNewUserActivities(&newUser)
 		log.Infof("Loading data for new user %v", newUser.ID)
 		SendJSONResponse(w, ResponseMessage{
 			Message: "Could not fetch user data",

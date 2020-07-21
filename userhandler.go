@@ -33,7 +33,7 @@ func HandleExpiringUsers() {
 	}
 }
 
-// HandleNewUserActivities : Handle storing "old" activities of a new user
-func HandleNewUserActivities(user *dbmodel.User) {
+// FetchNewUserActivities : Handle storing "old" activities of a new user
+func FetchNewUserActivities(user *dbmodel.User) {
 	// Fetch activities for user
 }
