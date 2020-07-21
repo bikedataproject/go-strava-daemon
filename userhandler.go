@@ -75,4 +75,6 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 			log.Infof("Added contribution %v to database", contrib.ContributionID)
 		}
 	}
+
+	return nil
 }
