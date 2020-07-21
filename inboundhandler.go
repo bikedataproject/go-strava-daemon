@@ -106,11 +106,17 @@ func HandleNewUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Fetch activities for users in a goroutine
-		go FetchNewUserActivities(&newUser)
-		log.Infof("Loading data for new user %v", newUser.ID)
-		SendJSONResponse(w, ResponseMessage{
-			Message: "Could not fetch user data",
-		})
+		if err := FetchNewUserActivities(&newUser); err != nil {
+			log.Errorf("Could not load data for user %v: %v", newUser.ID, err)
+			SendJSONResponse(w, ResponseMessage{
+				Message: "Could not fetch user data",
+			})
+		} else {
+			log.Infof("Successfully loaded data for new user %v", newUser.ID)
+			SendJSONResponse(w, ResponseMessage{
+				Message: "Ok",
+			})
+		}
 		break
 	default:
 		log.Warnf("Received a HTTP %s request instead of GET or POST on new user handler", r.Method)
