@@ -1,9 +1,9 @@
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/bikedataproject/go-bike-data-lib/dbmodel v0.0.0-20200721092356-3259b663f84d h1:sDig6p/CRe/HeKRGqdu66f0UV40VKJKQ0hdZCzit2Uw=
-github.com/bikedataproject/go-bike-data-lib/dbmodel v0.0.0-20200721092356-3259b663f84d/go.mod h1:nlG/+rgFk6lx8rN0bfxo2F/hDix8bjdCFSPkqjsKZw4=
-github.com/bikedataproject/go-bike-data-lib/strava v0.0.0-20200721092356-3259b663f84d h1:znoL1DMFUSu0hKt/93hD94de3eSYHgX+3uCtl+cwLV4=
-github.com/bikedataproject/go-bike-data-lib/strava v0.0.0-20200721092356-3259b663f84d/go.mod h1:SKHJLuXil4Vgw1MDjE2NwNb5RM1OPbAZVYhfms4EIfs=
+github.com/bikedataproject/go-bike-data-lib/dbmodel v0.0.0-20200722081127-1a65037a5ee8 h1:cAbklG8HcGqFM+nmBoY60kNktLhHLN07aSXOqAegMTQ=
+github.com/bikedataproject/go-bike-data-lib/dbmodel v0.0.0-20200722081127-1a65037a5ee8/go.mod h1:nlG/+rgFk6lx8rN0bfxo2F/hDix8bjdCFSPkqjsKZw4=
+github.com/bikedataproject/go-bike-data-lib/strava v0.0.0-20200722081127-1a65037a5ee8 h1:XMeLApTntXEL9LgBE9v7NE9K6+ukUiI1GcMfeMCuMjM=
+github.com/bikedataproject/go-bike-data-lib/strava v0.0.0-20200722081127-1a65037a5ee8/go.mod h1:SKHJLuXil4Vgw1MDjE2NwNb5RM1OPbAZVYhfms4EIfs=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fatih/camelcase v1.0.0 h1:hxNvNX/xYBp0ovncs8WyWZrOrpBNub/JfaMvbURyft8=
