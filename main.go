@@ -2,8 +2,9 @@ package main
 
 import (
 	// Import the Posgres driver for the database/sql package
-
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -23,6 +24,13 @@ var (
 )
 
 func main() {
+	// Set logging to file
+	logfile, err := os.OpenFile(fmt.Sprintf("log/%v.log", time.Now().Unix()), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Could not create logfile: %v", err)
+	}
+	log.SetOutput(logfile)
+
 	// Load configuration values
 	conf := &config.Config{}
 	multiconfig.MustLoad(conf)

@@ -156,7 +156,7 @@ func (db Database) GetExpiringUsers() (users []dbmodel.User, err error) {
 	// Fetch expiring users
 	response, err := connection.Query(`
 	SELECT "Id", "RefreshToken", "UserIdentifier" FROM "Users"
-	WHERE "ExpiresAt" <= $1 and "Provider" = 'app/strava';
+	WHERE "ExpiresAt" <= $1 and "Provider" = 'web/Strava';
 	`, time.Now().Add(30*time.Minute).Unix())
 	if err != nil {
 		defer connection.Close()
@@ -216,7 +216,7 @@ func (db Database) FetchNewUsers() (users []dbmodel.User, err error) {
 	response, err := connection.Query(`
 	SELECT "Id", "UserIdentifier", "Provider", "ProviderUser", "AccessToken", "RefreshToken", "TokenCreationDate", "ExpiresAt", "ExpiresIn", "IsHistoryFetched"
 	FROM "Users"
-	WHERE "Provider" = 'app/strava'
+	WHERE "Provider" = 'web/Strava'
 	AND NOT "IsHistoryFetched";
 	`)
 	if err != nil {
