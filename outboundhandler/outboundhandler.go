@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"go-strava-daemon/database"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
+	"github.com/bikedataproject/go-bike-data-lib/strava"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,20 +22,6 @@ type StravaHandler struct {
 	CallbackURL  string
 	VerifyToken  string
 	EndPoint     string
-}
-
-// StravaSubscriptionMessage : Struct that holds the ID of an individual webhook subscription
-type StravaSubscriptionMessage struct {
-	ID int `json:"id"`
-}
-
-// StravaRefreshMessage : Struct that holds the response when refreshing strava access
-type StravaRefreshMessage struct {
-	TokenType    string `json:"token_type"`
-	AccessToken  string `json:"access_token"`
-	ExpiresAt    int    `json:"expires_at"`
-	ExpiresIn    int    `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
 }
 
 // makeRequest : Perform a HTTP request
@@ -79,7 +66,7 @@ func (conf *StravaHandler) UnsubscribeFromStrava() {
 	defer response.Body.Close()
 
 	decoder := json.NewDecoder(response.Body)
-	var msg []StravaSubscriptionMessage
+	var msg []strava.SubscriptionMessage
 	if err := decoder.Decode(&msg); err != nil {
 		log.Fatalf("Could not decode subscription message: %v", err)
 	}
@@ -113,7 +100,7 @@ func (conf *StravaHandler) UnsubscribeFromStrava() {
 }
 
 // RefreshUserSubscription : Refresh the subscription from a user
-func (conf StravaHandler) RefreshUserSubscription(user *database.User) (newUser database.User, err error) {
+func (conf StravaHandler) RefreshUserSubscription(user *dbmodel.User) (newUser dbmodel.User, err error) {
 	// Create HTTPClient
 	client := &http.Client{}
 	// Initialise data
@@ -132,9 +119,9 @@ func (conf StravaHandler) RefreshUserSubscription(user *database.User) (newUser 
 	}
 	defer response.Body.Close()
 
-	// Decode body into StravaRefreshMessage
+	// Decode body into RefreshMessage
 	decoder := json.NewDecoder(response.Body)
-	var msg StravaRefreshMessage
+	var msg strava.RefreshMessage
 	if err := decoder.Decode(&msg); err != nil {
 		err = fmt.Errorf("Could not decode subscription refresh message: %v", err)
 	}
@@ -144,7 +131,7 @@ func (conf StravaHandler) RefreshUserSubscription(user *database.User) (newUser 
 		return
 	}
 
-	newUser = database.User{
+	newUser = dbmodel.User{
 		ID:             user.ID,
 		UserIdentifier: user.UserIdentifier,
 		AccessToken:    msg.AccessToken,

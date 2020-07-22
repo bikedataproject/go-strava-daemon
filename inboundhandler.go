@@ -5,17 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/bikedataproject/go-bike-data-lib/strava"
+
 	log "github.com/sirupsen/logrus"
 )
 
 // ResponseMessage : General response to send on requests
 type ResponseMessage struct {
 	Message string `json:"message"`
-}
-
-// StravaWebhookValidationRequest : Body of the incoming GET request to verify the endpoint
-type StravaWebhookValidationRequest struct {
-	HubChallenge string `json:"hub.challenge"`
 }
 
 // SendJSONResponse : Send a struct as JSON response
@@ -58,7 +55,7 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 			log.Warn("Could not get hub challenge from URL params")
 		} else {
 			log.Info("Received valid Strava verification request")
-			msg := StravaWebhookValidationRequest{
+			msg := strava.WebhookValidationRequest{
 				HubChallenge: challenge,
 			}
 			SendJSONResponse(w, msg)

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	"github.com/lib/pq"
+
 	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
-	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,38 +22,6 @@ type Database struct {
 	PostgresDb         string
 	PostgresRequireSSL string
 	Connection         *sql.DB
-}
-
-// User : Struct to respresent a user object from the database
-type User struct {
-	ID                string
-	UserIdentifier    string
-	Provider          string
-	ProviderUser      string
-	AccessToken       string
-	RefreshToken      string
-	TokenCreationDate time.Time
-	ExpiresAt         int
-	ExpiresIn         int
-}
-
-// Contribution : Struct to respresent a contribution object from the database
-type Contribution struct {
-	ContributionID string
-	UserAgent      string
-	Distance       float32
-	TimeStampStart time.Time
-	TimeStampStop  time.Time
-	Duration       int
-	PointsGeom     *geo.Path
-	PointsTime     []time.Time
-}
-
-// UserContribution : Struct to respresent a UserContribution object from the database
-type UserContribution struct {
-	UserContributionID string
-	UserID             string
-	ContributionID     string
 }
 
 // getDBConnectionString : Generate
@@ -80,7 +49,7 @@ func (db Database) Connect() (err error) {
 }
 
 // GetUserData : Request a user token for the ID
-func (db Database) GetUserData(userID string) (usr User, err error) {
+func (db Database) GetUserData(userID string) (usr dbmodel.User, err error) {
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
 		return
@@ -120,7 +89,7 @@ func (db Database) GetNewUserContributionID() (id string, err error) {
 }
 
 // AddContribution : Create new user contribution
-func (db Database) AddContribution(contribution *Contribution, user *User) (err error) {
+func (db Database) AddContribution(contribution *dbmodel.Contribution, user *dbmodel.User) (err error) {
 	// Generate IDs
 	newUserContribID, err := db.GetNewUserContributionID()
 	if err != nil {
@@ -128,7 +97,7 @@ func (db Database) AddContribution(contribution *Contribution, user *User) (err 
 	}
 
 	// Create contributions
-	userContrib := UserContribution{
+	userContrib := dbmodel.UserContribution{
 		UserID:             user.ID,
 		ContributionID:     contribution.ContributionID,
 		UserContributionID: newUserContribID,
@@ -163,7 +132,7 @@ func (db Database) AddContribution(contribution *Contribution, user *User) (err 
 }
 
 // GetExpiringUsers : Get users which are expiring within half an hour
-func (db Database) GetExpiringUsers() (users []User, err error) {
+func (db Database) GetExpiringUsers() (users []dbmodel.User, err error) {
 	// Connect to database
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
@@ -181,7 +150,7 @@ func (db Database) GetExpiringUsers() (users []User, err error) {
 
 	// Convert sql.Rows into User objects
 	for response.Next() {
-		var user User
+		var user dbmodel.User
 		err = response.Scan(&user.ID, &user.RefreshToken, &user.UserIdentifier)
 		if err != nil {
 			log.Warnf("Could not add expiring user to result: %v", err)
@@ -193,7 +162,7 @@ func (db Database) GetExpiringUsers() (users []User, err error) {
 }
 
 // UpdateUser : Update an existing user
-func (db Database) UpdateUser(user *User) (err error) {
+func (db Database) UpdateUser(user *dbmodel.User) (err error) {
 	// Connect to database
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {

@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"go-strava-daemon/database"
 	"net/http"
 	"time"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
 )
@@ -68,13 +68,13 @@ func (activity *StravaActivity) createTimeStampArray() (err error) {
 }
 
 // ConvertToContribution : Convert a Strava activity to a database contribution
-func (activity StravaActivity) ConvertToContribution() (contribution database.Contribution, err error) {
+func (activity *StravaActivity) ConvertToContribution() (contribution dbmodel.Contribution, err error) {
 	if newID, err := db.GetNewContributionID(); err == nil {
 		// Convert polyline to useable format
 		activity.decodePolyline()
 		// Generate timestamp per coordinate
 		activity.createTimeStampArray()
-		contribution = database.Contribution{
+		contribution = dbmodel.Contribution{
 			ContributionID: newID,
 			UserAgent:      "app/Strava",
 			Distance:       activity.Distance,
@@ -89,7 +89,7 @@ func (activity StravaActivity) ConvertToContribution() (contribution database.Co
 }
 
 // WriteToDatabase : Write activity message to database
-func (msg StravaWebhookMessage) WriteToDatabase() error {
+func (msg *StravaWebhookMessage) WriteToDatabase() error {
 	if msg.ObjectType == "activity" {
 		var activity StravaActivity
 
