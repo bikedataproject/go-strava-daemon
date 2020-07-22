@@ -56,11 +56,13 @@ func main() {
 	// Handle expiring users from Strava
 	go HandleExpiringUsers()
 
+	// Handle fetching data from new Strava users
+	go HandleNewUsers()
+
 	// Launch the API
 	log.Info("Launching HTTP API")
 	// Handle endpoints - add below if required
 	http.HandleFunc("/webhook/strava", HandleStravaWebhook)
-	http.HandleFunc("/new/strava/user", HandleNewUser)
 
 	// Run the server untill a Fatal error occurs
 	if err := http.ListenAndServe(":5000", nil); err != nil {

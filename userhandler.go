@@ -31,7 +31,40 @@ func HandleExpiringUsers() {
 			}
 		}
 
-		// Loop every 5 minutes
+		// Loop every 10 minutes
+		time.Sleep(10 * time.Minute)
+	}
+}
+
+// HandleNewUsers : Handle the registration of a new user
+func HandleNewUsers() {
+	for {
+		if users, err := db.FetchNewUsers(); err != nil {
+			log.Warnf("Could not fetch new users: %v", err)
+		} else {
+			// Check if there are any users to process
+			if len(users) > 0 {
+				log.Infof("Fetching Strava activities for %v new users", len(users))
+
+				// Iterate over new users
+				for _, user := range users {
+					if err := FetchNewUserActivities(&user); err != nil {
+						log.Errorf("Could not store new user activities: %v", err)
+					} else {
+						log.Infof("Fetching user activities for user %v was successfull", user.ID)
+					}
+					user.IsHistoryFetched = true
+					if err := db.UpdateUser(&user); err != nil {
+						log.Errorf("Something went wrong updating the user: %v", err)
+					}
+				}
+
+			} else {
+				log.Info("No new users to fetch data for")
+			}
+		}
+
+		// Loop every 10 minutes
 		time.Sleep(10 * time.Minute)
 	}
 }
