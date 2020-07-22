@@ -56,6 +56,9 @@ func main() {
 	// Handle expiring users from Strava
 	go HandleExpiringUsers()
 
+	// Handle fetching data from new Strava users
+	go HandleNewUsers()
+
 	// Launch the API
 	log.Info("Launching HTTP API")
 	// Handle endpoints - add below if required

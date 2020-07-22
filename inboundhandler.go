@@ -37,7 +37,6 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 				Message: "Could not decode JSON body",
 			})
 		} else {
-			log.Infof("Message type: %s, Object type: %s; Object ID: %v", msg.AspectType, msg.ObjectType, msg.ObjectID)
 			// Get activity data
 			if err := msg.WriteToDatabase(); err != nil {
 				log.Warnf("Could not get activity data: %v", err)
@@ -63,7 +62,7 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 
 		break
 	default:
-		log.Warnf("Received a HTTP %s request instead of GET or POST...", r.Method)
+		log.Warnf("Received a HTTP %s request instead of GET or POST on webhook handler", r.Method)
 		SendJSONResponse(w, ResponseMessage{
 			Message: fmt.Sprintf("Use HTTP POST or HTTP GET instead of %v", r.Method),
 		})
