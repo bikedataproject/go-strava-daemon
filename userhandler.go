@@ -59,6 +59,8 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 		return fmt.Errorf("Could not fetch user activities: %v", err)
 	}
 
+	log.Infof("Fetching %v activities from strava user %v", len(activities), user.ProviderUser)
+
 	// Write activities to database
 	for _, act := range activities {
 		// Convert activity

@@ -87,8 +87,8 @@ func HandleNewUser(w http.ResponseWriter, r *http.Request) {
 		// Attempt closing the body
 		defer r.Body.Close()
 
-		var user *dbmodel.User
-		err := json.NewDecoder(r.Body).Decode(user)
+		var user dbmodel.User
+		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil && user.ProviderUser != "" {
 			log.Errorf("Could not decode JSON body: %v", err)
 			SendJSONResponse(w, ResponseMessage{

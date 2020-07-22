@@ -54,17 +54,20 @@ func (activity *StravaActivity) decodePolyline() {
 }
 
 // createTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
-func (activity *StravaActivity) createTimeStampArray() (err error) {
+func (activity *StravaActivity) createTimeStampArray() error {
 	start := activity.StartDateLocal
 	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
 	nbOfIntervals := activity.LineString.PointSet.Length()
+	if nbOfIntervals == 0 {
+		return fmt.Errorf("There were 0 location points, could not create timestamp array")
+	}
 	intervalLength := activity.ElapsedTime / nbOfIntervals
 	var timeStamps []time.Time
 	for i := 0; i < nbOfIntervals; i++ {
 		timeStamps = append(timeStamps, start.Add(time.Second*time.Duration((intervalLength*i))))
 	}
 	activity.PointsTime = timeStamps
-	return
+	return nil
 }
 
 // ConvertToContribution : Convert a Strava activity to a database contribution
@@ -77,7 +80,7 @@ func (activity *StravaActivity) ConvertToContribution() (contribution dbmodel.Co
 		contribution = dbmodel.Contribution{
 			ContributionID: newID,
 			UserAgent:      "app/Strava",
-			Distance:       activity.Distance,
+			Distance:       int(activity.Distance),
 			TimeStampStart: activity.StartDateLocal,
 			TimeStampStop:  activity.EndDateLocal,
 			Duration:       activity.ElapsedTime,
