@@ -31,7 +31,7 @@ export CONFIG_STRAVAWEBHOOKURL="https://www.strava.com/api/v3/push_subscriptions
 ```sh
 docker pull docker.pkg.github.com/bikedataproject/go-strava-daemon/go-strava-daemon:staging
 
-docker run -d -p 5000:5000 \
+docker run -d -p 4000:4000 \
 -e CONFIG_POSTGRESHOST="localhost" \
 -e CONFIG_POSTGRESPORT="5432" \
 -e CONFIG_POSTGRESPASSWORD="MyPostgresPassword" \
@@ -50,7 +50,7 @@ go-strava-daemon:tag
 ```sh
 docker build -t go-strava-daemon:tag .
 
-docker run -d -p 5000:5000 \
+docker run -d -p 4000:4000 \
 -e CONFIG_POSTGRESHOST="localhost" \
 -e CONFIG_POSTGRESPORT="5432" \
 -e CONFIG_POSTGRESPASSWORD="MyPostgresPassword" \

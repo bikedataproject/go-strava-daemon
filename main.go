@@ -99,7 +99,7 @@ func main() {
 	http.HandleFunc("/webhook/strava", HandleStravaWebhook)
 
 	// Run the server untill a Fatal error occurs
-	if err := http.ListenAndServe(":5000", nil); err != nil {
+	if err := http.ListenAndServe(":4000", nil); err != nil {
 		log.Fatalf("Webserver crashed: %v", err)
 	}
 }
