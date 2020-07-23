@@ -18,7 +18,7 @@ type Database struct {
 	PostgresHost       string
 	PostgresUser       string
 	PostgresPassword   string
-	PostgresPort       int
+	PostgresPort       int64
 	PostgresDb         string
 	PostgresRequireSSL string
 	Connection         *sql.DB

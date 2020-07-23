@@ -35,6 +35,27 @@ func main() {
 	conf := &config.Config{}
 	multiconfig.MustLoad(conf)
 
+	// Check configuration type
+	if conf.DeploymentType == "production" {
+		port, err := strconv.ParseInt(config.ReadSecret("db_port"), 10, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		conf = &config.Config{
+			PostgresHost:       config.ReadSecret("db_host"),
+			PostgresUser:       config.ReadSecret("db_user"),
+			PostgresPassword:   config.ReadSecret("db_password"),
+			PostgresPort:       port,
+			PostgresDb:         config.ReadSecret("db_name"),
+			StravaClientID:     config.ReadSecret("strava_client_id"),
+			StravaClientSecret: config.ReadSecret("strava_client_secret"),
+		}
+	} else {
+		if conf.CallbackURL == "" || conf.PostgresDb == "" || conf.PostgresHost == "" || conf.PostgresPassword == "" || conf.PostgresPort == 0 || conf.PostgresRequireSSL == "" || conf.PostgresUser == "" || conf.StravaClientID == "" || conf.StravaClientSecret == "" || conf.StravaWebhookURL == "" {
+			log.Fatal("Configuration not completed")
+		}
+	}
+
 	// Subscribe to Strava
 	out = outboundhandler.StravaHandler{
 		ClientID:     conf.StravaClientID,
