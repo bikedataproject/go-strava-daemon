@@ -17,5 +17,8 @@ RUN go mod download
 # Build project
 RUN go build -o go-strava-daemon .
 
+# Expose port 4000
+EXPOSE 4000
+
 # Execute the daemon
 CMD [ "./go-strava-daemon" ]
