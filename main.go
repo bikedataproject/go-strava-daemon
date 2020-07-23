@@ -46,12 +46,11 @@ func main() {
 
 	// Check configuration type
 	if conf.DeploymentType == "production" {
-		port, _ := strconv.ParseInt(ReadSecret(conf.PostgresPortEnv), 10, 64)
 
 		conf.PostgresHost = ReadSecret(conf.PostgresHost)
 		conf.PostgresUser = ReadSecret(conf.PostgresUser)
 		conf.PostgresPassword = ReadSecret(conf.PostgresPassword)
-		conf.PostgresPort = port
+		conf.PostgresPort = 5432
 		conf.PostgresDb = ReadSecret(conf.PostgresDb)
 		conf.StravaClientID = ReadSecret(conf.StravaClientID)
 		conf.StravaClientSecret = ReadSecret(conf.StravaClientSecret)
