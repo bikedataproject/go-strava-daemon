@@ -107,7 +107,7 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 		if err != nil {
 			log.Warnf("Could not upload contribution to database: %v", err)
 		} else {
-			log.Infof("Added contribution %v to database", contrib.ContributionID)
+			log.Infof("Added contribution to database")
 		}
 	}
 

@@ -65,52 +65,8 @@ func (db Database) GetUserData(userID string) (usr dbmodel.User, err error) {
 	return
 }
 
-// GetNewContributionID : Get the count of current contributions
-func (db Database) GetNewContributionID() (id string, err error) {
-	connection, err := sql.Open("postgres", db.getDBConnectionString())
-	if err != nil {
-		defer connection.Close()
-		return
-	}
-	err = connection.QueryRow(`
-	SELECT Count(1)
-	FROM "Contributions";
-	`).Scan(&id)
-	defer connection.Close()
-	return
-}
-
-// GetNewUserContributionID : Get the count of current contributions
-func (db Database) GetNewUserContributionID() (id string, err error) {
-	connection, err := sql.Open("postgres", db.getDBConnectionString())
-	if err != nil {
-		defer connection.Close()
-		return
-	}
-	err = connection.QueryRow(`
-	SELECT Count(1)
-	FROM "UserContributions";
-	`).Scan(&id)
-
-	defer connection.Close()
-	return
-}
-
 // AddContribution : Create new user contribution
 func (db Database) AddContribution(contribution *dbmodel.Contribution, user *dbmodel.User) (err error) {
-	// Generate IDs
-	newUserContribID, err := db.GetNewUserContributionID()
-	if err != nil {
-		return
-	}
-
-	// Create contributions
-	userContrib := dbmodel.UserContribution{
-		UserID:             user.ID,
-		ContributionID:     contribution.ContributionID,
-		UserContributionID: newUserContribID,
-	}
-
 	// Connect to database
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
@@ -121,21 +77,26 @@ func (db Database) AddContribution(contribution *dbmodel.Contribution, user *dbm
 	// Write Contribution
 	query := `
 	INSERT INTO "Contributions"
-	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	("UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	RETURNING "ContributionId";
 	`
-	if _, err = connection.Exec(query, contribution.ContributionID, contribution.UserAgent, contribution.Distance, contribution.TimeStampStart, contribution.TimeStampStop, contribution.Duration, contribution.PointsGeom.ToWKT(), pq.Array(contribution.PointsTime)); err != nil {
-		defer connection.Close()
-		return fmt.Errorf("Could not insert value into contributions: %s", err)
+	response := connection.QueryRow(query, contribution.UserAgent, contribution.Distance, contribution.TimeStampStart, contribution.TimeStampStop, contribution.Duration, contribution.PointsGeom.ToWKT(), pq.Array(contribution.PointsTime))
+	defer connection.Close()
+
+	// Create contributions
+	userContrib := dbmodel.UserContribution{
+		UserID: user.ID,
 	}
+	response.Scan(&userContrib.ContributionID)
 
 	// Write WriteUserContribution
 	query = `
 	INSERT INTO "UserContributions"
-	("UserContributionId", "UserId", "ContributionId")
-	VALUES ($1, $2, $3)
+	("UserId", "ContributionId")
+	VALUES ($1, $2);
 	`
-	if _, err = connection.Exec(query, &userContrib.UserContributionID, &userContrib.UserID, &userContrib.ContributionID); err != nil {
+	if _, err = connection.Exec(query, userContrib.UserID, &userContrib.ContributionID); err != nil {
 		defer connection.Close()
 		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
