@@ -72,21 +72,18 @@ func (activity *StravaActivity) createTimeStampArray() error {
 
 // ConvertToContribution : Convert a Strava activity to a database contribution
 func (activity *StravaActivity) ConvertToContribution() (contribution dbmodel.Contribution, err error) {
-	if newID, err := db.GetNewContributionID(); err == nil {
-		// Convert polyline to useable format
-		activity.decodePolyline()
-		// Generate timestamp per coordinate
-		activity.createTimeStampArray()
-		contribution = dbmodel.Contribution{
-			ContributionID: newID,
-			UserAgent:      "app/Strava",
-			Distance:       int(activity.Distance),
-			TimeStampStart: activity.StartDateLocal,
-			TimeStampStop:  activity.EndDateLocal,
-			Duration:       activity.ElapsedTime,
-			PointsGeom:     activity.LineString,
-			PointsTime:     activity.PointsTime,
-		}
+	// Convert polyline to useable format
+	activity.decodePolyline()
+	// Generate timestamp per coordinate
+	activity.createTimeStampArray()
+	contribution = dbmodel.Contribution{
+		UserAgent:      "app/Strava",
+		Distance:       int(activity.Distance),
+		TimeStampStart: activity.StartDateLocal,
+		TimeStampStop:  activity.EndDateLocal,
+		Duration:       activity.ElapsedTime,
+		PointsGeom:     activity.LineString,
+		PointsTime:     activity.PointsTime,
 	}
 	return
 }
