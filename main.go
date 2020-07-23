@@ -46,16 +46,15 @@ func main() {
 
 	// Check configuration type
 	if conf.DeploymentType == "production" {
+		port, _ := strconv.ParseInt(ReadSecret(conf.PostgresPortEnv), 10, 64)
 
 		conf.PostgresHost = ReadSecret(conf.PostgresHost)
 		conf.PostgresUser = ReadSecret(conf.PostgresUser)
 		conf.PostgresPassword = ReadSecret(conf.PostgresPassword)
-		conf.PostgresPort = 5432
+		conf.PostgresPort = port
 		conf.PostgresDb = ReadSecret(conf.PostgresDb)
 		conf.StravaClientID = ReadSecret(conf.StravaClientID)
 		conf.StravaClientSecret = ReadSecret(conf.StravaClientSecret)
-
-		log.Info(conf)
 	} else {
 		if conf.CallbackURL == "" || conf.PostgresDb == "" || conf.PostgresHost == "" || conf.PostgresPassword == "" || conf.PostgresPort == 0 || conf.PostgresRequireSSL == "" || conf.PostgresUser == "" || conf.StravaClientID == "" || conf.StravaClientSecret == "" || conf.StravaWebhookURL == "" {
 			log.Fatal("Configuration not complete")
@@ -80,7 +79,6 @@ func main() {
 		PostgresDb:         conf.PostgresDb,
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
-	log.Info(db)
 	db.Connect()
 
 	// Unsubscribe from previous connections
