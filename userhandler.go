@@ -86,7 +86,7 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 	defer res.Body.Close()
 
 	// Attempt to decode response
-	var activities []StravaActivity
+	var activities []*StravaActivity
 	err = json.NewDecoder(res.Body).Decode(&activities)
 	if err != nil || len(activities) < 1 {
 		return fmt.Errorf("Could not fetch user activities: %v", err)
