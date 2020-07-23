@@ -2,9 +2,9 @@ package main
 
 import (
 	// Import the Posgres driver for the database/sql package
-	"fmt"
+
+	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -23,13 +23,22 @@ var (
 	out outboundhandler.StravaHandler
 )
 
+// ReadSecret : Read a file and return it's content as string - used for Docker secrets
+func ReadSecret(file string) string {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatalf("Could not fetch secret: %v", err)
+	}
+	return string(data)
+}
+
 func main() {
 	// Set logging to file
-	logfile, err := os.OpenFile(fmt.Sprintf("log/%v.log", time.Now().Unix()), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	/*logfile, err := os.OpenFile(fmt.Sprintf("log/%v.log", time.Now().Unix()), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Could not create logfile: %v", err)
 	}
-	log.SetOutput(logfile)
+	log.SetOutput(logfile)*/
 
 	// Load configuration values
 	conf := &config.Config{}
@@ -37,22 +46,20 @@ func main() {
 
 	// Check configuration type
 	if conf.DeploymentType == "production" {
-		port, err := strconv.ParseInt(config.ReadSecret("db_port"), 10, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-		conf = &config.Config{
-			PostgresHost:       config.ReadSecret("db_host"),
-			PostgresUser:       config.ReadSecret("db_user"),
-			PostgresPassword:   config.ReadSecret("db_password"),
-			PostgresPort:       port,
-			PostgresDb:         config.ReadSecret("db_name"),
-			StravaClientID:     config.ReadSecret("strava_client_id"),
-			StravaClientSecret: config.ReadSecret("strava_client_secret"),
-		}
+		port, _ := strconv.ParseInt(ReadSecret("tmp/port"), 10, 64)
+
+		conf.PostgresHost = ReadSecret(conf.PostgresHost)
+		conf.PostgresUser = ReadSecret(conf.PostgresUser)
+		conf.PostgresPassword = ReadSecret(conf.PostgresPassword)
+		conf.PostgresPort = port
+		conf.PostgresDb = ReadSecret(conf.PostgresDb)
+		conf.StravaClientID = ReadSecret(conf.StravaClientID)
+		conf.StravaClientSecret = ReadSecret(conf.StravaClientSecret)
+
+		log.Info(conf)
 	} else {
 		if conf.CallbackURL == "" || conf.PostgresDb == "" || conf.PostgresHost == "" || conf.PostgresPassword == "" || conf.PostgresPort == 0 || conf.PostgresRequireSSL == "" || conf.PostgresUser == "" || conf.StravaClientID == "" || conf.StravaClientSecret == "" || conf.StravaWebhookURL == "" {
-			log.Fatal("Configuration not completed")
+			log.Fatal("Configuration not complete")
 		}
 	}
 
@@ -74,6 +81,7 @@ func main() {
 		PostgresDb:         conf.PostgresDb,
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
+	log.Info(db)
 	db.Connect()
 
 	// Unsubscribe from previous connections
