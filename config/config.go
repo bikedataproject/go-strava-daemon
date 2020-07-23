@@ -8,6 +8,7 @@ type Config struct {
 	PostgresUser       string
 	PostgresPassword   string
 	PostgresPort       int64
+	PostgresPortEnv    string
 	PostgresDb         string
 	PostgresRequireSSL string `default:"require"`
 

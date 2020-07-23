@@ -46,7 +46,7 @@ func main() {
 
 	// Check configuration type
 	if conf.DeploymentType == "production" {
-		port, _ := strconv.ParseInt(ReadSecret("tmp/port"), 10, 64)
+		port, _ := strconv.ParseInt(ReadSecret(conf.PostgresPortEnv), 10, 64)
 
 		conf.PostgresHost = ReadSecret(conf.PostgresHost)
 		conf.PostgresUser = ReadSecret(conf.PostgresUser)
