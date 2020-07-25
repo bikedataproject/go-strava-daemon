@@ -1,16 +1,19 @@
 package config
 
-// Configuration : this struct contains ENV configuration parameters
+// Config : this struct contains ENV configuration parameters
 type Config struct {
-	PostgresHost       string `required:"true"`
-	PostgresUser       string `required:"true"`
-	PostgresPassword   string `required:"true"`
-	PostgresPort       int    `default:"5432"`
-	PostgresDb         string `required:"true"`
+	DeploymentType string `required:"true" default:"production"`
+
+	PostgresHost       string
+	PostgresUser       string
+	PostgresPassword   string
+	PostgresPort       int64
+	PostgresPortEnv    string
+	PostgresDb         string
 	PostgresRequireSSL string `default:"require"`
 
-	StravaClientID     string `required:"true"`
-	StravaClientSecret string `required:"true"`
-	CallbackURL        string `required:"true"`
-	StravaWebhookURL   string `required:"true"`
+	StravaClientID     string
+	StravaClientSecret string
+	CallbackURL        string
+	StravaWebhookURL   string
 }

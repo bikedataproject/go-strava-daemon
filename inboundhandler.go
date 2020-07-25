@@ -5,17 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/bikedataproject/go-bike-data-lib/strava"
+
 	log "github.com/sirupsen/logrus"
 )
 
 // ResponseMessage : General response to send on requests
 type ResponseMessage struct {
 	Message string `json:"message"`
-}
-
-// StravaWebhookValidationRequest : Body of the incoming GET request to verify the endpoint
-type StravaWebhookValidationRequest struct {
-	HubChallenge string `json:"hub.challenge"`
 }
 
 // SendJSONResponse : Send a struct as JSON response
@@ -40,7 +37,6 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 				Message: "Could not decode JSON body",
 			})
 		} else {
-			log.Infof("Message type: %s, Object type: %s; Object ID: %v", msg.AspectType, msg.ObjectType, msg.ObjectID)
 			// Get activity data
 			if err := msg.WriteToDatabase(); err != nil {
 				log.Warnf("Could not get activity data: %v", err)
@@ -58,7 +54,7 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 			log.Warn("Could not get hub challenge from URL params")
 		} else {
 			log.Info("Received valid Strava verification request")
-			msg := StravaWebhookValidationRequest{
+			msg := strava.WebhookValidationRequest{
 				HubChallenge: challenge,
 			}
 			SendJSONResponse(w, msg)
@@ -66,7 +62,7 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 
 		break
 	default:
-		log.Warnf("Received a HTTP %s request instead of GET or POST...", r.Method)
+		log.Warnf("Received a HTTP %s request instead of GET or POST on webhook handler", r.Method)
 		SendJSONResponse(w, ResponseMessage{
 			Message: fmt.Sprintf("Use HTTP POST or HTTP GET instead of %v", r.Method),
 		})

@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"go-strava-daemon/database"
 	"net/http"
 	"time"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
 )
@@ -50,46 +50,51 @@ type StravaActivityMap struct {
 
 // decodePolyline : Convert an encoded polyline into a decoded geo.Path object
 func (activity *StravaActivity) decodePolyline() {
-	activity.LineString = geo.NewPathFromEncoding(activity.Map.Polyline)
+	// Handle empty polyline
+	if activity.Map.Polyline != "" {
+		activity.LineString = geo.NewPathFromEncoding(activity.Map.Polyline)
+	} else {
+		activity.LineString = geo.NewPathFromEncoding(activity.Map.SummaryPolyline)
+	}
 }
 
 // createTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
-func (activity *StravaActivity) createTimeStampArray() (err error) {
+func (activity *StravaActivity) createTimeStampArray() error {
 	start := activity.StartDateLocal
 	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
 	nbOfIntervals := activity.LineString.PointSet.Length()
+	if nbOfIntervals == 0 {
+		return fmt.Errorf("There were 0 location points, could not create timestamp array")
+	}
 	intervalLength := activity.ElapsedTime / nbOfIntervals
 	var timeStamps []time.Time
 	for i := 0; i < nbOfIntervals; i++ {
 		timeStamps = append(timeStamps, start.Add(time.Second*time.Duration((intervalLength*i))))
 	}
 	activity.PointsTime = timeStamps
-	return
+	return nil
 }
 
 // ConvertToContribution : Convert a Strava activity to a database contribution
-func (activity StravaActivity) ConvertToContribution() (contribution database.Contribution, err error) {
-	if newID, err := db.GetNewContributionID(); err == nil {
-		// Convert polyline to useable format
-		activity.decodePolyline()
-		// Generate timestamp per coordinate
-		activity.createTimeStampArray()
-		contribution = database.Contribution{
-			ContributionID: newID,
-			UserAgent:      "app/Strava",
-			Distance:       activity.Distance,
-			TimeStampStart: activity.StartDateLocal,
-			TimeStampStop:  activity.EndDateLocal,
-			Duration:       activity.ElapsedTime,
-			PointsGeom:     activity.LineString,
-			PointsTime:     activity.PointsTime,
-		}
+func (activity *StravaActivity) ConvertToContribution() (contribution dbmodel.Contribution, err error) {
+	// Convert polyline to useable format
+	activity.decodePolyline()
+	// Generate timestamp per coordinate
+	activity.createTimeStampArray()
+	contribution = dbmodel.Contribution{
+		UserAgent:      "app/Strava",
+		Distance:       int(activity.Distance),
+		TimeStampStart: activity.StartDateLocal,
+		TimeStampStop:  activity.EndDateLocal,
+		Duration:       activity.ElapsedTime,
+		PointsGeom:     activity.LineString,
+		PointsTime:     activity.PointsTime,
 	}
 	return
 }
 
 // WriteToDatabase : Write activity message to database
-func (msg StravaWebhookMessage) WriteToDatabase() error {
+func (msg *StravaWebhookMessage) WriteToDatabase() error {
 	if msg.ObjectType == "activity" {
 		var activity StravaActivity
 

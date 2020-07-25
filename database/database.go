@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
 	"github.com/lib/pq"
+
 	// Import postgres backend for database/sql module
 	_ "github.com/lib/pq"
-	geo "github.com/paulmach/go.geo"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,42 +18,10 @@ type Database struct {
 	PostgresHost       string
 	PostgresUser       string
 	PostgresPassword   string
-	PostgresPort       int
+	PostgresPort       int64
 	PostgresDb         string
 	PostgresRequireSSL string
 	Connection         *sql.DB
-}
-
-// User : Struct to respresent a user object from the database
-type User struct {
-	ID                string
-	UserIdentifier    string
-	Provider          string
-	ProviderUser      string
-	AccessToken       string
-	RefreshToken      string
-	TokenCreationDate time.Time
-	ExpiresAt         int
-	ExpiresIn         int
-}
-
-// Contribution : Struct to respresent a contribution object from the database
-type Contribution struct {
-	ContributionID string
-	UserAgent      string
-	Distance       float32
-	TimeStampStart time.Time
-	TimeStampStop  time.Time
-	Duration       int
-	PointsGeom     *geo.Path
-	PointsTime     []time.Time
-}
-
-// UserContribution : Struct to respresent a UserContribution object from the database
-type UserContribution struct {
-	UserContributionID string
-	UserID             string
-	ContributionID     string
 }
 
 // getDBConnectionString : Generate
@@ -80,108 +49,84 @@ func (db Database) Connect() (err error) {
 }
 
 // GetUserData : Request a user token for the ID
-func (db Database) GetUserData(userID string) (usr User, err error) {
+func (db Database) GetUserData(userID string) (usr dbmodel.User, err error) {
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
+		defer connection.Close()
 		return
 	}
 	err = connection.QueryRow(`
-	SELECT "Id", "AccessToken"
+	SELECT "Id", "UserIdentifier", "Provider", "ProviderUser", "AccessToken", "RefreshToken", "TokenCreationDate", "ExpiresAt", "ExpiresIn", "IsHistoryFetched"
 	FROM "Users"
 	WHERE "ProviderUser"=$1;
-	`, userID).Scan(&usr.ID, &usr.AccessToken)
-	return
-}
-
-// GetNewContributionID : Get the count of current contributions
-func (db Database) GetNewContributionID() (id string, err error) {
-	connection, err := sql.Open("postgres", db.getDBConnectionString())
-	if err != nil {
-		return
-	}
-	err = connection.QueryRow(`
-	SELECT Count(1)
-	FROM "Contributions";
-	`).Scan(&id)
-	return
-}
-
-// GetNewUserContributionID : Get the count of current contributions
-func (db Database) GetNewUserContributionID() (id string, err error) {
-	connection, err := sql.Open("postgres", db.getDBConnectionString())
-	if err != nil {
-		return
-	}
-	err = connection.QueryRow(`
-	SELECT Count(1)
-	FROM "UserContributions";
-	`).Scan(&id)
+	`, userID).Scan(&usr.ID, &usr.UserIdentifier, &usr.Provider, &usr.ProviderUser, &usr.AccessToken, &usr.RefreshToken, &usr.TokenCreationDate, &usr.ExpiresAt, &usr.ExpiresIn, &usr.IsHistoryFetched)
+	log.Info(usr)
+	defer connection.Close()
 	return
 }
 
 // AddContribution : Create new user contribution
-func (db Database) AddContribution(contribution *Contribution, user *User) (err error) {
-	// Generate IDs
-	newUserContribID, err := db.GetNewUserContributionID()
-	if err != nil {
-		return
-	}
-
-	// Create contributions
-	userContrib := UserContribution{
-		UserID:             user.ID,
-		ContributionID:     contribution.ContributionID,
-		UserContributionID: newUserContribID,
-	}
-
+func (db Database) AddContribution(contribution *dbmodel.Contribution, user *dbmodel.User) (err error) {
 	// Connect to database
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
-		return
+		defer connection.Close()
+		return fmt.Errorf("Could not create database connection: %v", err)
 	}
 
 	// Write Contribution
 	query := `
 	INSERT INTO "Contributions"
-	("ContributionId", "UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	("UserAgent", "Distance", "TimeStampStart", "TimeStampStop", "Duration", "PointsGeom", "PointsTime")
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	RETURNING "ContributionId";
 	`
-	if _, err = connection.Exec(query, contribution.ContributionID, contribution.UserAgent, contribution.Distance, contribution.TimeStampStart, contribution.TimeStampStop, contribution.Duration, contribution.PointsGeom.ToWKT(), pq.Array(contribution.PointsTime)); err != nil {
-		return fmt.Errorf("Could not insert value into contributions: %s", err)
+	response := connection.QueryRow(query, contribution.UserAgent, contribution.Distance, contribution.TimeStampStart, contribution.TimeStampStop, contribution.Duration, contribution.PointsGeom.ToWKT(), pq.Array(contribution.PointsTime))
+	defer connection.Close()
+
+	// Create contributions
+	userContrib := dbmodel.UserContribution{
+		UserID: user.ID,
 	}
+	response.Scan(&userContrib.ContributionID)
 
 	// Write WriteUserContribution
 	query = `
 	INSERT INTO "UserContributions"
-	("UserContributionId", "UserId", "ContributionId")
-	VALUES ($1, $2, $3)
+	("UserId", "ContributionId")
+	VALUES ($1, $2);
 	`
-	if _, err = connection.Exec(query, &userContrib.UserContributionID, &userContrib.UserID, &userContrib.ContributionID); err != nil {
+	if _, err = connection.Exec(query, userContrib.UserID, &userContrib.ContributionID); err != nil {
+		defer connection.Close()
 		return fmt.Errorf("Could not insert value into contributions: %s", err)
 	}
+
+	defer connection.Close()
 	return
 }
 
 // GetExpiringUsers : Get users which are expiring within half an hour
-func (db Database) GetExpiringUsers() (users []User, err error) {
+func (db Database) GetExpiringUsers() (users []dbmodel.User, err error) {
 	// Connect to database
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
+		defer connection.Close()
 		return
 	}
 
 	// Fetch expiring users
 	response, err := connection.Query(`
 	SELECT "Id", "RefreshToken", "UserIdentifier" FROM "Users"
-	WHERE "ExpiresAt" <= $1 and "Provider" = 'app/strava';
+	WHERE "ExpiresAt" <= $1 and "Provider" = 'web/Strava';
 	`, time.Now().Add(30*time.Minute).Unix())
 	if err != nil {
+		defer connection.Close()
 		return
 	}
 
 	// Convert sql.Rows into User objects
 	for response.Next() {
-		var user User
+		var user dbmodel.User
 		err = response.Scan(&user.ID, &user.RefreshToken, &user.UserIdentifier)
 		if err != nil {
 			log.Warnf("Could not add expiring user to result: %v", err)
@@ -189,14 +134,18 @@ func (db Database) GetExpiringUsers() (users []User, err error) {
 		users = append(users, user)
 	}
 
+	defer connection.Close()
 	return
 }
 
 // UpdateUser : Update an existing user
-func (db Database) UpdateUser(user *User) (err error) {
+func (db Database) UpdateUser(user *dbmodel.User) (err error) {
 	// Connect to database
+
+	log.Info(user)
 	connection, err := sql.Open("postgres", db.getDBConnectionString())
 	if err != nil {
+		defer connection.Close()
 		return
 	}
 
@@ -206,8 +155,46 @@ func (db Database) UpdateUser(user *User) (err error) {
 	SET "ExpiresAt" = $1,
 		"ExpiresIn" = $2,
 		"AccessToken" = $3,
-		"RefreshToken" = $4
-	WHERE "UserIdentifier" = $5;
-	`, &user.ExpiresAt, &user.ExpiresIn, &user.AccessToken, &user.RefreshToken, &user.UserIdentifier)
+		"RefreshToken" = $4,
+		"IsHistoryFetched" = $5
+	WHERE "UserIdentifier" = $6;
+	`, &user.ExpiresAt, &user.ExpiresIn, &user.AccessToken, &user.RefreshToken, &user.IsHistoryFetched, &user.UserIdentifier)
+
+	defer connection.Close()
+	return
+}
+
+// FetchNewUsers : Fetch an array of new users that have not yet fetched their old data
+func (db Database) FetchNewUsers() (users []dbmodel.User, err error) {
+	// Connect to database
+	connection, err := sql.Open("postgres", db.getDBConnectionString())
+	if err != nil {
+		defer connection.Close()
+		return
+	}
+
+	// Fetch new users
+	response, err := connection.Query(`
+	SELECT "Id", "UserIdentifier", "Provider", "ProviderUser", "AccessToken", "RefreshToken", "TokenCreationDate", "ExpiresAt", "ExpiresIn", "IsHistoryFetched"
+	FROM "Users"
+	WHERE "Provider" = 'web/Strava'
+	AND NOT "IsHistoryFetched";
+	`)
+	if err != nil {
+		defer connection.Close()
+		return
+	}
+
+	// Convert sql.Rows into User objects
+	for response.Next() {
+		var user dbmodel.User
+		err = response.Scan(&user.ID, &user.UserIdentifier, &user.Provider, &user.ProviderUser, &user.AccessToken, &user.RefreshToken, &user.TokenCreationDate, &user.ExpiresAt, &user.ExpiresIn, &user.IsHistoryFetched)
+		if err != nil {
+			log.Warnf("Could not add expiring user to result: %v", err)
+		}
+		users = append(users, user)
+	}
+
+	defer connection.Close()
 	return
 }
