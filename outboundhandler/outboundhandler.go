@@ -36,6 +36,10 @@ func (conf StravaHandler) makeRequest(endpoint string, httpverb string, payload 
 	if err != nil {
 		return
 	}
+
+	if response.StatusCode == 429 {
+		err = fmt.Errorf("Got HTTP 429 as response: too many requests")
+	}
 	return
 }
 
@@ -93,8 +97,17 @@ func (conf *StravaHandler) UnsubscribeFromStrava() {
 		if err != nil {
 			log.Fatalf("Could not make unsubscribe request: %v", err)
 		}
-		if response.StatusCode == 204 {
-			log.Info("Unsubscribed successfully!")
+
+		// Handle responsecodes
+		switch response.StatusCode {
+		case 204:
+			log.Infof("Unsubscribed successfully! (ID = %v)", m.ID)
+			break
+		case 429:
+			log.Warnf("Received HTTP 429 when trying to unsubscribe from ID %v", m.ID)
+			break
+		default:
+			break
 		}
 	}
 }
@@ -118,6 +131,12 @@ func (conf StravaHandler) RefreshUserSubscription(user *dbmodel.User) (newUser d
 		return
 	}
 	defer response.Body.Close()
+
+	// Handle HTTP 429: Too many requests
+	if response.StatusCode == 429 {
+		err = fmt.Errorf("Strava responded with HTTP 429 (too many requests) trying to refresh user %v's access token", user.ID)
+		return
+	}
 
 	// Decode body into RefreshMessage
 	decoder := json.NewDecoder(response.Body)
