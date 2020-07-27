@@ -3,7 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
@@ -93,6 +97,18 @@ func (activity *StravaActivity) ConvertToContribution() (contribution dbmodel.Co
 	return
 }
 
+// writeToCache : Write a StravaWebhookMessage to cache & fetch it later
+func (msg *StravaWebhookMessage) writeToCache() error {
+	// Marshall message to bytes
+	data, err := json.Marshal(&msg)
+	if err != nil {
+		return err
+	}
+	// Write to file
+	err = ioutil.WriteFile(fmt.Sprintf("%v/%v.tmp", Cachedir, time.Now().Unix()), data, 0644)
+	return err
+}
+
 // WriteToDatabase : Write activity message to database
 func (msg *StravaWebhookMessage) WriteToDatabase() error {
 	if msg.ObjectType == "activity" {
@@ -118,7 +134,11 @@ func (msg *StravaWebhookMessage) WriteToDatabase() error {
 		}
 		defer response.Body.Close()
 
+		// Except strava request limit exceeded: write message to cache
 		if response.StatusCode == 429 {
+			if err := msg.writeToCache(); err != nil {
+				return fmt.Errorf("Strava responded with HTTP 429 and could not write message to cache: %v", err)
+			}
 			return fmt.Errorf("Strava responded with HTTP 429: Too many requests when retrieving activity data (activity %v for user %v)", msg.ObjectID, msg.OwnerID)
 		}
 
@@ -145,4 +165,57 @@ func (msg *StravaWebhookMessage) WriteToDatabase() error {
 		}
 	}
 	return nil
+}
+
+// GetFiles : Fetch files in a certain directory
+func GetFiles(dir string, filetype string) (files []string, err error) {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && strings.Contains(path, filetype) {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return
+}
+
+// HandleCache : Check if any files are in cache and fetch their data
+func HandleCache() {
+	for {
+		// Check if there are any cache files
+		if files, err := GetFiles(Cachedir, "tmp"); err != nil {
+			log.Errorf("Could not fetch cache files: %v", err)
+		} else {
+			if len(files) < 1 {
+				log.Info("No new cache files found")
+			} else {
+				// Loop over files
+				for _, file := range files {
+					// Attempt to read cachefile
+					if data, err := ioutil.ReadFile(file); err != nil {
+						log.Errorf("Could not read cachefile: %v", err)
+					} else {
+						// Decode into stravawebhookmessage
+						var msg *StravaWebhookMessage
+						if err := json.Unmarshal(data, &msg); err != nil {
+							log.Errorf("Could not decode cachefile into stravawebhookmessage: %v", err)
+						} else {
+							// Attempt deleting file
+							if err := msg.WriteToDatabase(); err != nil {
+								log.Errorf("Could not write cachefile content to database: %v", err)
+							} else {
+								log.Infof("Wrote cachefile (%v) data to database", file)
+								// Delete file
+								if err := os.Remove(file); err != nil {
+									log.Errorf("Could not delete cachefile: %v", err)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Sleep for an hour
+		time.Sleep(1 * time.Hour)
+	}
 }
