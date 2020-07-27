@@ -549,4 +549,5 @@ MigrationBackup/
 
 
 env-variables.env
+cache
 # End of https://www.toptal.com/developers/gitignore/api/linux,visualstudio,visualstudiocode,jetbrains+all,macos,windows,go

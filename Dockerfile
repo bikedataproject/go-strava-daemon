@@ -6,7 +6,7 @@ WORKDIR /build
 
 # Set logging folder & assign volume
 RUN mkdir log
-VOLUME [ "/build/log", "/cache" ]
+VOLUME [ "/build/log", "/build/cache" ]
 
 # Copy all files
 COPY . .
