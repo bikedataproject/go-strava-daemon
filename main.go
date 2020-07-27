@@ -14,14 +14,15 @@ import (
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
+
 	"go-strava-daemon/config"
-	"go-strava-daemon/database"
 	"go-strava-daemon/outboundhandler"
 )
 
 // Global variables
 var (
-	db  database.Database
+	db  dbmodel.Database
 	out outboundhandler.StravaHandler
 )
 
@@ -73,7 +74,7 @@ func main() {
 		EndPoint:    conf.StravaWebhookURL,
 	}
 
-	db = database.Database{
+	db = dbmodel.Database{
 		PostgresHost:       conf.PostgresHost,
 		PostgresUser:       conf.PostgresUser,
 		PostgresPassword:   conf.PostgresPassword,
@@ -81,7 +82,7 @@ func main() {
 		PostgresDb:         conf.PostgresDb,
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
-	db.Connect()
+	db.VerifyConnection()
 
 	// Unsubscribe from previous connections
 	out.UnsubscribeFromStrava()
