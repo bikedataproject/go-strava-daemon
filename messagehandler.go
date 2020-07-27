@@ -118,6 +118,10 @@ func (msg *StravaWebhookMessage) WriteToDatabase() error {
 		}
 		defer response.Body.Close()
 
+		if response.StatusCode == 429 {
+			return fmt.Errorf("Strava responded with HTTP 429: Too many requests when retrieving activity data (activity %v for user %v)", msg.ObjectID, msg.OwnerID)
+		}
+
 		if err := json.NewDecoder(response.Body).Decode(&activity); err != nil {
 			return fmt.Errorf("Could not decode response body: %v", err)
 		}
