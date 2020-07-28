@@ -1,5 +1,22 @@
 # go-strava-daemon
 
+<p align="center">
+  <a href="https://github.com/bikedataproject/go-strava-daemon">
+    <img src="https://avatars3.githubusercontent.com/u/64870976?s=200&v=4" alt="Logo" width="80" height="80">
+  </a>
+
+  <h3 align="center">Go Strava Daemon</h3>
+
+  <p align="center">
+    This projects'goals is to fetch Strava user data via a webhook subscription to Strava.
+    <br />
+    <a href="https://github.com/bikedataproject/go-strava-daemon/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/bikedataproject/go-strava-daemon/issues">Request Feature</a>
+  </p>
+</p>
+
+
 ![Docker Image CD](https://github.com/bikedataproject/go-strava-daemon/workflows/Docker%20Image%20CD/badge.svg) ![Docker Image CI](https://github.com/bikedataproject/go-strava-daemon/workflows/Docker%20Image%20CI/badge.svg)
 
 ## About this repository
