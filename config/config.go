@@ -16,4 +16,6 @@ type Config struct {
 	StravaClientSecret string
 	CallbackURL        string
 	StravaWebhookURL   string
+
+	CacheDir string `default:"cache"`
 }

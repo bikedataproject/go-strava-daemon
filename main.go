@@ -14,15 +14,17 @@ import (
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/bikedataproject/go-bike-data-lib/dbmodel"
+
 	"go-strava-daemon/config"
-	"go-strava-daemon/database"
 	"go-strava-daemon/outboundhandler"
 )
 
 // Global variables
 var (
-	db  database.Database
-	out outboundhandler.StravaHandler
+	db       dbmodel.Database
+	out      outboundhandler.StravaHandler
+	Cachedir string
 )
 
 // ReadSecret : Read a file and return it's content as string - used for Docker secrets
@@ -44,7 +46,8 @@ func main() {
 
 	// Load configuration values
 	conf := &config.Config{}
-	multiconfig.MustLoad(conf)
+	multiconfig.MustLoad(&conf)
+	Cachedir = conf.CacheDir
 
 	// Check configuration type
 	if conf.DeploymentType == "production" {
@@ -73,7 +76,7 @@ func main() {
 		EndPoint:    conf.StravaWebhookURL,
 	}
 
-	db = database.Database{
+	db = dbmodel.Database{
 		PostgresHost:       conf.PostgresHost,
 		PostgresUser:       conf.PostgresUser,
 		PostgresPassword:   conf.PostgresPassword,
@@ -81,7 +84,7 @@ func main() {
 		PostgresDb:         conf.PostgresDb,
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
-	db.Connect()
+	db.VerifyConnection()
 
 	// Unsubscribe from previous connections
 	out.UnsubscribeFromStrava()
@@ -94,6 +97,9 @@ func main() {
 
 	// Handle fetching data from new Strava users
 	go HandleNewUsers()
+
+	// Handle cached stravawebhookrequests
+	go HandleCache()
 
 	// Launch the API
 	log.Info("Launching HTTP API")
