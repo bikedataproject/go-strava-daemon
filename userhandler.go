@@ -78,16 +78,16 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 		return fmt.Errorf("Could not get user activities: %v", err)
 	}
 
-	// Except HTTP 429: too many requests
-	if req.Response.StatusCode == 429 {
-		return fmt.Errorf("Strava request limit has been reached")
-	}
-
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", user.AccessToken))
 
 	res, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Could not make request: %v", err)
+	}
+
+	// Except HTTP 429: too many requests
+	if res.StatusCode == 429 {
+		return fmt.Errorf("Strava request limit has been reached")
 	}
 	defer res.Body.Close()
 
