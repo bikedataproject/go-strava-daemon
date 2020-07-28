@@ -4,9 +4,9 @@
 
 ## About this repository
 
-This repository contains the daemon service to fetch Strava user data.
+This repository contains a daemon service to fetch Strava user data. This service is exposed to the internet with 1 single endpoint, which goal is to receive Webhook messages from Strava. These Webhook messages have information about new user activities, which will be fetched and stored in the database.
 
-## Required parametes
+## Required parameters
 
 This daemon requires some `ENV` variables to be set. Below is an example:
 
@@ -24,12 +24,10 @@ export CONFIG_CALLBACKURL="https://redirect-to-me.com"
 export CONFIG_STRAVAWEBHOOKURL="https://www.strava.com/api/v3/push_subscriptions"
 ```
 
-## How to run
-
-### Use official image
+## How to run: use the official image
 
 ```sh
-docker pull docker.pkg.github.com/bikedataproject/go-strava-daemon/go-strava-daemon:staging
+docker pull bikedataproject/go-strava-daemon:staging
 
 docker run -d -p 4000:4000 \
 -e CONFIG_POSTGRESHOST="localhost" \
@@ -42,26 +40,7 @@ docker run -d -p 4000:4000 \
 -e CONFIG_STRAVACLIENTSECRET="MY_STRAVA_SECRET" \
 -e CONFIG_CALLBACKURL="https://redirect-to-me.com" \
 -e CONFIG_STRAVAWEBHOOKURL="https://www.strava.com/api/v3/push_subscriptions" \
-go-strava-daemon:tag
-```
-
-### Build from scratch
-
-```sh
-docker build -t go-strava-daemon:tag .
-
-docker run -d -p 4000:4000 \
--e CONFIG_POSTGRESHOST="localhost" \
--e CONFIG_POSTGRESPORT="5432" \
--e CONFIG_POSTGRESPASSWORD="MyPostgresPassword" \
--e CONFIG_POSTGRESUSER="postgres" \
--e CONFIG_POSTGRESDB="bikedata" \
--e CONFIG_POSTGRESREQUIRESSL="require" \
--e CONFIG_STRAVACLIENTID="MY_STRAVA_ID" \
--e CONFIG_STRAVACLIENTSECRET="MY_STRAVA_SECRET" \
--e CONFIG_CALLBACKURL="https://redirect-to-me.com" \
--e CONFIG_STRAVAWEBHOOKURL="https://www.strava.com/api/v3/push_subscriptions" \
-go-strava-daemon:tag
+bikedataproject/go-strava-daemon:staging
 ```
 
 ## Flow diagram
