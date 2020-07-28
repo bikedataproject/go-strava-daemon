@@ -8,7 +8,7 @@
   <h3 align="center">Go Strava Daemon</h3>
 
   <p align="center">
-    This projects'goals is to fetch Strava user data via a webhook subscription to Strava.
+    This repository goal is to fetch Strava user data via a webhook subscription to Strava.
     <br />
     <a href="https://github.com/bikedataproject/go-strava-daemon/issues">Report Bug</a>
     ·
