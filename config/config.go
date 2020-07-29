@@ -12,10 +12,11 @@ type Config struct {
 	PostgresDb         string
 	PostgresRequireSSL string `default:"require"`
 
-	StravaClientID     string
-	StravaClientSecret string
-	CallbackURL        string
-	StravaWebhookURL   string
+	StravaClientID      string
+	StravaClientSecret  string
+	CallbackURL         string
+	StravaWebhookURL    string
+	StravaMaxActivities int `default:"200"`
 
 	CacheDir string `default:"cache"`
 }
