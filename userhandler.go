@@ -116,18 +116,20 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 
 	// Write activities to database
 	for _, act := range activities {
-		// Convert activity
-		contrib, err := act.ConvertToContribution()
-		if err != nil {
-			log.Warnf("Could not convert activity to contribution: %v", err)
-		}
+		// Check for cycling type & convert activity to contribution
+		if act.Type == "Ride" && act.WorkoutType == 10 {
+			contrib, err := act.ConvertToContribution()
+			if err != nil {
+				log.Warnf("Could not convert activity to contribution: %v", err)
+			}
 
-		// Get contribution in database
-		err = db.AddContribution(&contrib, user)
-		if err != nil {
-			log.Warnf("Could not upload contribution to database: %v", err)
-		} else {
-			log.Infof("Added contribution to database")
+			// Get contribution in database
+			err = db.AddContribution(&contrib, user)
+			if err != nil {
+				log.Warnf("Could not upload contribution to database: %v", err)
+			} else {
+				log.Infof("Added contribution to database")
+			}
 		}
 	}
 
