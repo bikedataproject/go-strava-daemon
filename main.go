@@ -22,9 +22,10 @@ import (
 
 // Global variables
 var (
-	db       dbmodel.Database
-	out      outboundhandler.StravaHandler
-	Cachedir string
+	db            dbmodel.Database
+	out           outboundhandler.StravaHandler
+	Cachedir      string
+	MaxActivities int
 )
 
 // ReadSecret : Read a file and return it's content as string - used for Docker secrets
@@ -48,6 +49,7 @@ func main() {
 	conf := &config.Config{}
 	multiconfig.MustLoad(&conf)
 	Cachedir = conf.CacheDir
+	MaxActivities = conf.StravaMaxActivities
 
 	// Check configuration type
 	if conf.DeploymentType == "production" {
