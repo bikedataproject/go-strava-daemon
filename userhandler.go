@@ -59,8 +59,6 @@ func HandleNewUsers() {
 					}
 				}
 
-			} else {
-				log.Info("No new users to fetch data for")
 			}
 		}
 
