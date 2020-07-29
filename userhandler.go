@@ -91,7 +91,8 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 
 		// Except HTTP 429: too many requests
 		if res.StatusCode == 429 {
-			return fmt.Errorf("Strava request limit has been reached")
+			log.Warnf("Strava request limit has been reached - storing in database what we have")
+			break
 		}
 		defer res.Body.Close()
 
