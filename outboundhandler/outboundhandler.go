@@ -151,12 +151,13 @@ func (conf StravaHandler) RefreshUserSubscription(user *dbmodel.User) (newUser d
 	}
 
 	newUser = dbmodel.User{
-		ID:             user.ID,
-		UserIdentifier: user.UserIdentifier,
-		AccessToken:    msg.AccessToken,
-		RefreshToken:   msg.RefreshToken,
-		ExpiresAt:      msg.ExpiresAt,
-		ExpiresIn:      msg.ExpiresIn,
+		ID:               user.ID,
+		UserIdentifier:   user.UserIdentifier,
+		AccessToken:      msg.AccessToken,
+		RefreshToken:     msg.RefreshToken,
+		ExpiresAt:        msg.ExpiresAt,
+		ExpiresIn:        msg.ExpiresIn,
+		IsHistoryFetched: true,
 	}
 
 	return
