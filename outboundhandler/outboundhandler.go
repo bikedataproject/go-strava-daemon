@@ -157,6 +157,8 @@ func (conf StravaHandler) RefreshUserSubscription(user *dbmodel.User) (newUser d
 		RefreshToken:   msg.RefreshToken,
 		ExpiresAt:      msg.ExpiresAt,
 		ExpiresIn:      msg.ExpiresIn,
+		// User does not expire before 5 hours in the database, data is fetched within 10seconds
+		IsHistoryFetched: true,
 	}
 
 	return
