@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -115,7 +116,7 @@ func (msg *StravaWebhookMessage) WriteToDatabase() error {
 		var activity StravaActivity
 
 		// Get owner information from database
-		user, err := db.GetUserData(string(msg.OwnerID))
+		user, err := db.GetUserData(strconv.Itoa(msg.OwnerID))
 		if err != nil {
 			return fmt.Errorf("Could not get user information: %v", err)
 		}

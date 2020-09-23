@@ -52,6 +52,7 @@ func (conf *StravaHandler) SubscribeToStrava() (err error) {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return err
@@ -102,12 +103,9 @@ func (conf *StravaHandler) UnsubscribeFromStrava() {
 		switch response.StatusCode {
 		case 204:
 			log.Infof("Unsubscribed successfully! (ID = %v)", m.ID)
-			break
 		case 429:
 			log.Warnf("Received HTTP 429 when trying to unsubscribe from ID %v", m.ID)
-			break
 		default:
-			break
 		}
 	}
 }
@@ -142,7 +140,7 @@ func (conf StravaHandler) RefreshUserSubscription(user *dbmodel.User) (newUser d
 	decoder := json.NewDecoder(response.Body)
 	var msg strava.RefreshMessage
 	if err := decoder.Decode(&msg); err != nil {
-		err = fmt.Errorf("Could not decode subscription refresh message: %v", err)
+		return newUser, fmt.Errorf("Could not decode subscription refresh message: %v", err)
 	}
 
 	if msg.AccessToken == "" && msg.RefreshToken == "" {
@@ -157,6 +155,8 @@ func (conf StravaHandler) RefreshUserSubscription(user *dbmodel.User) (newUser d
 		RefreshToken:   msg.RefreshToken,
 		ExpiresAt:      msg.ExpiresAt,
 		ExpiresIn:      msg.ExpiresIn,
+		// User does not expire before 5 hours in the database, data is fetched within 10seconds
+		IsHistoryFetched: true,
 	}
 
 	return

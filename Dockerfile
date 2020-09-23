@@ -5,7 +5,7 @@ FROM golang:alpine
 WORKDIR /build
 
 # Set logging folder & assign volume
-RUN mkdir log
+RUN mkdir log cache
 VOLUME [ "/build/log", "/build/cache" ]
 
 # Copy all files

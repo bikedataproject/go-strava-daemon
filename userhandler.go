@@ -59,61 +59,82 @@ func HandleNewUsers() {
 					}
 				}
 
-			} else {
-				log.Info("No new users to fetch data for")
 			}
 		}
 
 		// Loop every 10 minutes
-		time.Sleep(10 * time.Minute)
+		time.Sleep(10 * time.Second)
 	}
 }
 
 // FetchNewUserActivities : Handle storing "old" activities of a new user
 func FetchNewUserActivities(user *dbmodel.User) error {
 	// Fetch activities for user
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://www.strava.com/api/v3/athlete/activities", nil)
-	if err != nil {
-		return fmt.Errorf("Could not get user activities: %v", err)
-	}
-
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", user.AccessToken))
-
-	res, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("Could not make request: %v", err)
-	}
-
-	// Except HTTP 429: too many requests
-	if res.StatusCode == 429 {
-		return fmt.Errorf("Strava request limit has been reached")
-	}
-	defer res.Body.Close()
-
-	// Attempt to decode response
 	var activities []*StravaActivity
-	err = json.NewDecoder(res.Body).Decode(&activities)
-	if err != nil || len(activities) < 1 {
-		return fmt.Errorf("Could not fetch user activities: %v", err)
+	client := &http.Client{}
+
+	// Allow 20000 activities max
+	for page := 1; page < 100; page++ {
+		req, err := http.NewRequest("GET", fmt.Sprintf("https://www.strava.com/api/v3/athlete/activities?per_page=%v&page=%v", MaxActivities, page), nil)
+		if err != nil {
+			return fmt.Errorf("Could not get user activities: %v", err)
+		}
+
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", user.AccessToken))
+
+		res, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("Could not make request: %v", err)
+		}
+
+		// Except HTTP 429: too many requests
+		if res.StatusCode == 429 {
+			log.Warnf("Strava request limit has been reached - storing in database what we have")
+			break
+		}
+		defer res.Body.Close()
+
+		// Attempt to decode response
+		var tmpAct []*StravaActivity
+		err = json.NewDecoder(res.Body).Decode(&tmpAct)
+		if err != nil {
+			return fmt.Errorf("Could not fetch user activities: %v", err)
+		}
+
+		// Check if there are any activities
+		if len(tmpAct) < 1 {
+			return fmt.Errorf("User has no (more) activities")
+		}
+
+		// Add to global array
+		for _, act := range tmpAct {
+			activities = append(activities, act)
+		}
+
+		// Check if there's no more - should be if the len is 200
+		if len(tmpAct) < (200 * page) {
+			break
+		}
 	}
 
 	log.Infof("Fetching %v activities from strava user %v", len(activities), user.ProviderUser)
 
 	// Write activities to database
 	for _, act := range activities {
-		// Convert activity
-		contrib, err := act.ConvertToContribution()
-		if err != nil {
-			log.Warnf("Could not convert activity to contribution: %v", err)
-		}
+		// Check for cycling type & convert activity to contribution
+		if act.Type == "Ride" && act.WorkoutType == 10 {
+			contrib, err := act.ConvertToContribution()
+			if err != nil {
+				log.Warnf("Could not convert activity to contribution: %v", err)
+			}
 
-		// Get contribution in database
-		err = db.AddContribution(&contrib, user)
-		if err != nil {
-			log.Warnf("Could not upload contribution to database: %v", err)
-		} else {
-			log.Infof("Added contribution to database")
+			// Get contribution in database
+			err = db.AddContribution(&contrib, user)
+			if err != nil {
+				log.Warnf("Could not upload contribution to database: %v", err)
+			} else {
+				log.Infof("Added contribution to database")
+			}
 		}
 	}
 

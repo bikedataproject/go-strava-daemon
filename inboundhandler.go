@@ -21,7 +21,9 @@ func SendJSONResponse(w http.ResponseWriter, obj interface{}) {
 	if err != nil {
 		log.Fatalf("Could not parse response: %v", err)
 	} else {
-		fmt.Fprintf(w, string(response))
+		if _, err := w.Write([]byte(response)); err != nil {
+			log.Errorf("Could not send response: %v", err)
+		}
 	}
 }
 
@@ -39,14 +41,13 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 		} else {
 			// Get activity data
 			if err := msg.WriteToDatabase(); err != nil {
-				log.Warnf("Could not get activity data: %v", err)
+				log.Errorf("Could not get activity data: %v", err)
 			} else {
+				SendJSONResponse(w, ResponseMessage{
+					Message: "Ok",
+				})
 			}
-			SendJSONResponse(w, ResponseMessage{
-				Message: "Ok",
-			})
 		}
-		break
 	case "GET":
 		// Try to fetch a message from Strava
 		challenge, err := getURLParam("hub.challenge", r)
@@ -59,14 +60,11 @@ func HandleStravaWebhook(w http.ResponseWriter, r *http.Request) {
 			}
 			SendJSONResponse(w, msg)
 		}
-
-		break
 	default:
 		log.Warnf("Received a HTTP %s request instead of GET or POST on webhook handler", r.Method)
 		SendJSONResponse(w, ResponseMessage{
 			Message: fmt.Sprintf("Use HTTP POST or HTTP GET instead of %v", r.Method),
 		})
-		break
 	}
 }
 
