@@ -66,7 +66,7 @@ func (activity *StravaActivity) decodePolyline() {
 // createTimeStampArray : Function to create a TimestampArray from the StartDateLocal and ElapsedTime
 func (activity *StravaActivity) createTimeStampArray() error {
 	start := activity.StartDateLocal
-	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime))
+	activity.EndDateLocal = start.Add(time.Duration(activity.ElapsedTime) * time.Second)
 	nbOfIntervals := activity.LineString.PointSet.Length()
 	if nbOfIntervals == 0 {
 		return fmt.Errorf("There were 0 location points, could not create timestamp array")
