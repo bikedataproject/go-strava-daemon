@@ -97,8 +97,13 @@ func FetchNewUserActivities(user *dbmodel.User) error {
 		// Attempt to decode response
 		var tmpAct []*StravaActivity
 		err = json.NewDecoder(res.Body).Decode(&tmpAct)
-		if err != nil || len(tmpAct) < 1 {
+		if err != nil {
 			return fmt.Errorf("Could not fetch user activities: %v", err)
+		}
+
+		// Check if there are any activities
+		if len(tmpAct) < 1 {
+			return fmt.Errorf("User has no (more) activities")
 		}
 
 		// Add to global array

@@ -86,7 +86,9 @@ func main() {
 		PostgresDb:         conf.PostgresDb,
 		PostgresRequireSSL: conf.PostgresRequireSSL,
 	}
-	db.VerifyConnection()
+	if err := db.VerifyConnection(); err != nil {
+		log.Fatalf("Could not verify databaseconnection: %v", err)
+	}
 
 	// Unsubscribe from previous connections
 	out.UnsubscribeFromStrava()
